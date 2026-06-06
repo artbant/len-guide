@@ -10,370 +10,152 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 :root {
-  --bg: #0a0a0a;
-  --sep: #1e1e1e;
-  --sep2: #222;
-  --text: #e8e8e8;
-  --text2: #999;
-  --text3: #555;
-  --accent: #c8ff6e;
-  --orange: #ff8c42;
-  --teal: #5dcaa5;
-  --tab-h: 56px;
-  --player-h: 64px;
-  --max-w: 390px;
+  --bg:#0a0a0a; --sep:#1e1e1e; --sep2:#222;
+  --text:#e8e8e8; --text2:#999; --text3:#555;
+  --accent:#c8ff6e; --orange:#ff8c42; --teal:#5dcaa5;
+  --tab-h:56px; --player-h:64px; --max-w:390px;
 }
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-html,body {
-  background:#050505;
-  min-height:100vh;
-  font-family:'Golos Text',sans-serif;
-  font-size:16px;
-  color:var(--text);
-  overscroll-behavior:none;
-}
-#app {
-  max-width:var(--max-w);
-  margin:0 auto;
-  min-height:100vh;
-  background:var(--bg);
-  display:flex;
-  flex-direction:column;
-  position:relative;
-}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{background:#050505;min-height:100vh;font-family:'Golos Text',sans-serif;font-size:16px;color:var(--text);overscroll-behavior:none}
+#app{max-width:var(--max-w);margin:0 auto;min-height:100vh;background:var(--bg);display:flex;flex-direction:column}
 
-/* ── PROGRESS BAR ── */
-#progress-bar {
-  height:2px;
-  background:var(--sep);
-  flex-shrink:0;
-  position:relative;
-}
-#progress-fill {
-  height:100%;
-  background:var(--accent);
-  width:0%;
-  transition:width .5s ease;
-}
-#progress-label {
-  position:absolute;
-  right:12px;
-  top:4px;
-  font-family:'IBM Plex Mono',monospace;
-  font-size:10px;
-  color:var(--text3);
-  letter-spacing:0.5px;
-}
+/* progress */
+#progress-bar{height:2px;background:var(--sep);flex-shrink:0;position:relative}
+#progress-fill{height:100%;background:var(--accent);width:0%;transition:width .5s ease}
+#progress-label{position:absolute;right:12px;top:4px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:.5px}
 
-/* ── HEADER ── */
-.page-header {
-  padding:20px 16px 0;
-  flex-shrink:0;
-}
-.page-header h1 {
-  font-family:'Bebas Neue',sans-serif;
-  font-size:30px;
-  letter-spacing:1.5px;
-  line-height:1;
-}
-.page-header p {
-  font-family:'IBM Plex Mono',monospace;
-  font-size:11px;
-  color:var(--text3);
-  letter-spacing:1px;
-  text-transform:uppercase;
-  margin-top:5px;
-}
+/* header */
+.page-header{padding:20px 16px 0;flex-shrink:0}
+.page-header h1{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:1.5px;line-height:1}
+.page-header p{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-top:5px}
 
-/* ── LISTEN ALL ── */
-.listen-all-wrap {
-  padding:14px 16px 12px;
-  flex-shrink:0;
-}
-.listen-all-btn {
-  width:100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:9px;
-  background:rgba(200,255,110,.09);
-  border:0.5px solid rgba(200,255,110,.28);
-  border-radius:12px;
-  padding:14px 16px;
-  color:var(--accent);
-  font-family:'IBM Plex Mono',monospace;
-  font-size:12px;
-  letter-spacing:0.8px;
-  text-transform:uppercase;
-  cursor:pointer;
-  transition:background .18s;
-}
-.listen-all-btn:active { background:rgba(200,255,110,.16); }
-.listen-all-btn svg { width:16px; height:16px; flex-shrink:0; }
+/* listen all */
+.listen-all-wrap{padding:14px 16px 12px;flex-shrink:0}
+.listen-all-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;background:rgba(200,255,110,.09);border:.5px solid rgba(200,255,110,.28);border-radius:12px;padding:14px 16px;color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.8px;text-transform:uppercase;cursor:pointer;transition:background .18s}
+.listen-all-btn:active{background:rgba(200,255,110,.16)}
+.listen-all-btn svg{width:16px;height:16px;flex-shrink:0}
 
-/* ── SCROLL AREA ── */
-.scroll-area {
-  flex:1;
-  overflow-y:auto;
-  overflow-x:hidden;
-  -webkit-overflow-scrolling:touch;
-  padding-bottom:calc(var(--tab-h) + var(--player-h) + 20px);
-}
-.tab-panel { display:none; animation:fadeIn .22s ease; }
-.tab-panel.active { display:block; }
-@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+/* scroll */
+.scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--tab-h) + var(--player-h) + 20px)}
+.tab-panel{display:none;animation:fadeIn .2s ease}
+.tab-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 
-/* ── TRANSIT CARD ── */
-.transit-card {
-  padding:14px 16px;
-  border-bottom:0.5px solid var(--sep);
-  display:flex;
-  gap:12px;
-}
-.transit-line {
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  padding-top:5px;
-  flex-shrink:0;
-}
-.tdot { width:4px; height:4px; border-radius:50%; background:#333; }
-.tvline { width:1px; flex:1; min-height:6px; margin:3px 0; background:#282828; }
-.transit-content { flex:1; }
-.transit-title {
-  font-family:'IBM Plex Mono',monospace;
-  font-size:10px;
-  color:#666;
-  letter-spacing:0.7px;
-  text-transform:uppercase;
-  margin-bottom:6px;
-}
-.transit-text { font-size:16px; color:#aaa; line-height:1.65; }
+/* point card */
+.point-card{border-bottom:.5px solid var(--sep)}
+.point-header{display:flex;gap:10px;align-items:center;padding:14px 16px;cursor:pointer;transition:background .12s}
+.point-header:active{background:#0d0d0d}
+.point-num{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);min-width:18px;flex-shrink:0}
+.point-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.type-bar    .point-icon{background:rgba(200,255,110,.12);color:var(--accent)}
+.type-gone   .point-icon{background:rgba(150,150,150,.12);color:#888}
+.type-museum .point-icon{background:rgba(93,202,165,.12);color:var(--teal)}
+.type-yard   .point-icon{background:rgba(150,150,150,.12);color:#999}
+.type-boiler .point-icon{background:rgba(255,140,66,.12);color:var(--orange)}
+.point-meta{flex:1;min-width:0}
+.point-name{font-size:15px;font-weight:600;color:var(--text);line-height:1.3}
+.point-addr{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text3);margin-top:2px}
+.dist-badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);margin-top:3px}
+.point-play-btn{background:none;border:none;cursor:pointer;color:#555;padding:6px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;transition:color .15s,background .15s}
+.point-play-btn svg{width:22px;height:22px}
+.point-play-btn:active,.point-play-btn.playing{color:var(--accent)}
 
-/* ── POINT CARD ── */
-.point-card { border-bottom:0.5px solid var(--sep); }
-.point-header {
-  display:flex;
-  gap:10px;
-  align-items:center;
-  padding:14px 16px;
-  cursor:pointer;
-  transition:background .12s;
-}
-.point-header:active { background:#0d0d0d; }
-.point-num {
-  font-family:'IBM Plex Mono',monospace;
-  font-size:10px;
-  color:var(--text3);
-  min-width:18px;
-  flex-shrink:0;
-}
-.point-icon {
-  width:36px; height:36px;
-  border-radius:10px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:16px;
-  flex-shrink:0;
-}
-.type-bar    .point-icon { background:rgba(200,255,110,.1); color:var(--accent); }
-.type-gone   .point-icon { background:rgba(150,150,150,.1); color:#888; }
-.type-museum .point-icon { background:rgba(93,202,165,.1);  color:var(--teal); }
-.type-yard   .point-icon { background:rgba(150,150,150,.1); color:#999; }
-.type-boiler .point-icon { background:rgba(255,140,66,.1);  color:var(--orange); }
+/* body */
+.point-body{display:none}
+.point-card.expanded .point-body{display:block}
+.point-photo{width:100%;height:200px;object-fit:cover;display:block;filter:grayscale(20%) brightness(.85)}
+.point-photo-err{width:100%;height:0;display:none}
+.point-photo-cap{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);padding:6px 16px 0;letter-spacing:.3px}
+.point-text{font-size:15px;color:#bbb;line-height:1.75;white-space:pre-wrap;padding:14px 16px 16px}
+.soon-badge{margin:0 16px 16px;padding:12px;background:rgba(255,140,66,.06);border:.5px solid rgba(255,140,66,.25);border-radius:8px;font-size:14px;color:var(--orange);line-height:1.5}
+.soon-badge strong{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:4px;opacity:.7}
 
-.point-meta { flex:1; min-width:0; }
-.point-name {
-  font-size:16px;
-  font-weight:600;
-  color:var(--text);
-  line-height:1.3;
-}
-.point-addr {
-  font-family:'IBM Plex Mono',monospace;
-  font-size:11px;
-  color:var(--text3);
-  margin-top:2px;
-}
-.dist-badge {
-  display:inline-block;
-  font-family:'IBM Plex Mono',monospace;
-  font-size:10px;
-  color:var(--accent);
-  margin-top:3px;
-}
-.point-visited .point-name { color:#666; }
-.point-visited .point-icon { opacity:.5; }
-.visited-check {
-  display:none;
-  width:16px; height:16px;
-  border-radius:50%;
-  background:rgba(200,255,110,.15);
-  border:1px solid var(--accent);
-  align-items:center;
-  justify-content:center;
-  flex-shrink:0;
-  font-size:9px;
-  color:var(--accent);
-}
-.point-visited .visited-check { display:flex; }
+/* transit card */
+.transit-card{border-bottom:.5px solid var(--sep)}
+.transit-header{display:flex;gap:10px;align-items:center;padding:12px 16px;cursor:pointer;transition:background .12s}
+.transit-header:active{background:#0d0d0d}
+.transit-dot-icon{width:36px;height:36px;border-radius:10px;background:#111;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.transit-dot-icon span{width:5px;height:5px;border-radius:50%;background:#333;display:block}
+.transit-meta{flex:1;min-width:0}
+.transit-name{font-size:14px;font-weight:500;color:#888;line-height:1.3}
+.transit-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);margin-top:2px;letter-spacing:.3px}
+.transit-play-btn{background:none;border:none;cursor:pointer;color:#444;padding:6px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;transition:color .15s}
+.transit-play-btn svg{width:20px;height:20px}
+.transit-play-btn:active,.transit-play-btn.playing{color:var(--accent)}
+.transit-body{display:none;padding:0 16px 16px 16px}
+.transit-card.expanded .transit-body{display:block}
+.transit-text{font-size:15px;color:#aaa;line-height:1.7}
+/* ambient player canvas */
+.ambient-wrap{margin-top:12px;display:flex;align-items:center;gap:10px}
+.ambient-btn{background:none;border:.5px solid #333;border-radius:20px;padding:5px 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#555;cursor:pointer;letter-spacing:.5px;white-space:nowrap;transition:border-color .2s,color .2s}
+.ambient-btn:hover,.ambient-btn.playing{border-color:var(--accent);color:var(--accent)}
+.ambient-canvas{flex:1;height:24px;opacity:.4}
 
-.point-play-btn {
-  background:none; border:none; cursor:pointer;
-  color:#555; padding:6px; flex-shrink:0;
-  border-radius:50%; display:flex; align-items:center;
-  transition:color .15s, background .15s;
-}
-.point-play-btn svg { width:22px; height:22px; }
-.point-play-btn:active { color:var(--accent); background:rgba(200,255,110,.08); }
-.point-play-btn.playing { color:var(--accent); }
+/* map */
+#map-wrap{position:relative}
+#map{width:100%;height:calc(100vh - 112px);background:#0a0a0a}
+#map-skeleton{position:absolute;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text3);z-index:1;transition:opacity .3s;pointer-events:none}
+#map-skeleton.hidden{opacity:0}
+.leaflet-control-attribution{display:none!important}
+.leaflet-control-zoom a{background:#111!important;color:#888!important;border-color:#222!important}
+.leaflet-bar{border:.5px solid #222!important;box-shadow:none!important}
+.leaflet-popup-content-wrapper{background:#111!important;border:.5px solid #2a2a2a!important;border-radius:10px!important;box-shadow:0 4px 20px rgba(0,0,0,.7)!important;color:var(--text)!important;font-family:'Golos Text',sans-serif!important}
+.leaflet-popup-tip{background:#111!important}
+.leaflet-popup-content{margin:12px 14px!important}
+.popup-name{font-weight:600;font-size:15px}
+.popup-addr{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text3);margin-top:3px}
+.popup-goto{display:inline-block;margin-top:9px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);cursor:pointer;text-transform:uppercase;letter-spacing:.4px}
 
-.point-chevron { color:#444; font-size:11px; transition:transform .22s; flex-shrink:0; }
-.point-card.expanded .point-chevron { transform:rotate(180deg); }
+/* people */
+.people-list{padding:4px 0 0}
+.section-title{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:1.4px;text-transform:uppercase;padding:16px 16px 8px}
+.person-card{border-bottom:.5px solid var(--sep);cursor:pointer}
+.person-header{display:flex;justify-content:space-between;align-items:center;padding:13px 16px}
+.person-name{font-size:15px;font-weight:600;color:var(--text)}
+.person-dates{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text3);margin-top:1px}
+.person-chev{color:#444;font-size:11px;transition:transform .2s;flex-shrink:0}
+.person-card.expanded .person-chev{transform:rotate(180deg)}
+.person-body{display:none;padding:0 16px 15px}
+.person-card.expanded .person-body{display:block}
+.person-bio{font-size:14px;color:#999;line-height:1.7}
+.person-where{margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--teal)}
 
-/* expand body */
-.point-body { display:none; }
-.point-card.expanded .point-body { display:block; }
+/* player */
+#player-bar{position:fixed;bottom:var(--tab-h);left:50%;transform:translateX(-50%);width:100%;max-width:var(--max-w);height:var(--player-h);background:#0d0d0d;border-top:.5px solid #1e1e1e;display:none;align-items:center;padding:0 14px;gap:10px;z-index:30}
+#player-bar.visible{display:flex}
+.pb-track{flex:1;min-width:0}
+#pb-name{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pb-sub{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pb-sub.warn{color:var(--orange)}
+.pb-btn{background:none;border:none;cursor:pointer;color:#888;padding:6px;display:flex;align-items:center;border-radius:50%;transition:color .15s;flex-shrink:0}
+.pb-btn:active{color:var(--text)}
+.pb-btn svg{width:24px;height:24px}
+.pb-btn.sm svg{width:18px;height:18px}
 
-/* point photo */
-.point-photo {
-  width:100%;
-  height:180px;
-  object-fit:cover;
-  display:block;
-  filter:grayscale(30%) brightness(.85);
-}
-.point-photo-cap {
-  font-family:'IBM Plex Mono',monospace;
-  font-size:10px;
-  color:var(--text3);
-  padding:6px 16px 0;
-  letter-spacing:0.3px;
-}
+/* nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:var(--max-w);height:var(--tab-h);background:#0d0d0d;border-top:.5px solid #1a1a1a;display:flex;align-items:center;z-index:40}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:none;border:none;cursor:pointer;color:#444;padding:8px 4px;transition:color .18s}
+.nav-btn svg{width:22px;height:22px}
+.nav-btn span{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.7px;text-transform:uppercase}
+.nav-btn.active{color:var(--accent)}
 
-.point-text {
-  font-size:16px;
-  color:#bbb;
-  line-height:1.75;
-  white-space:pre-wrap;
-  padding:14px 16px 16px 16px;
-}
-.soon-badge {
-  margin:0 16px 16px;
-  padding:10px 12px;
-  background:rgba(255,140,66,.05);
-  border:0.5px solid rgba(255,140,66,.2);
-  border-radius:8px;
-  font-family:'IBM Plex Mono',monospace;
-  font-size:11px;
-  color:var(--orange);
-}
-
-/* ── MAP ── */
-#map { width:100%; height:calc(100vh - 112px); background:#0a0a0a; }
-.leaflet-control-attribution { display:none !important; }
-.leaflet-control-zoom a { background:#111 !important; color:#888 !important; border-color:#222 !important; }
-.leaflet-bar { border:0.5px solid #222 !important; box-shadow:none !important; }
-.leaflet-popup-content-wrapper {
-  background:#111 !important; border:0.5px solid #2a2a2a !important;
-  border-radius:10px !important; box-shadow:0 4px 20px rgba(0,0,0,.7) !important;
-  color:var(--text) !important; font-family:'Golos Text',sans-serif !important;
-}
-.leaflet-popup-tip { background:#111 !important; }
-.leaflet-popup-content { margin:12px 14px !important; }
-.popup-name { font-weight:600; font-size:16px; }
-.popup-addr { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text3); margin-top:3px; }
-.popup-goto { display:inline-block; margin-top:9px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--accent); cursor:pointer; text-transform:uppercase; letter-spacing:0.4px; }
-
-/* ── PEOPLE ── */
-.people-list { padding:4px 0 0; }
-.section-title {
-  font-family:'IBM Plex Mono',monospace;
-  font-size:10px; color:var(--text3);
-  letter-spacing:1.4px; text-transform:uppercase;
-  padding:16px 16px 8px;
-}
-.person-card { border-bottom:0.5px solid var(--sep); cursor:pointer; }
-.person-header { display:flex; justify-content:space-between; align-items:center; padding:13px 16px; }
-.person-name { font-size:16px; font-weight:600; color:var(--text); }
-.person-dates { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text3); margin-top:1px; }
-.person-chev { color:#444; font-size:11px; transition:transform .2s; flex-shrink:0; }
-.person-card.expanded .person-chev { transform:rotate(180deg); }
-.person-body { display:none; padding:0 16px 15px; }
-.person-card.expanded .person-body { display:block; }
-.person-bio { font-size:15px; color:#999; line-height:1.7; }
-.person-where { margin-top:8px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--teal); }
-
-/* ── PLAYER BAR ── */
-#player-bar {
-  position:fixed; bottom:var(--tab-h); left:50%; transform:translateX(-50%);
-  width:100%; max-width:var(--max-w);
-  height:var(--player-h);
-  background:#0d0d0d; border-top:0.5px solid #1e1e1e;
-  display:none; align-items:center; padding:0 14px; gap:10px; z-index:30;
-}
-#player-bar.visible { display:flex; }
-.pb-track { flex:1; min-width:0; }
-#pb-name { font-size:15px; font-weight:500; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-#pb-sub { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text3); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-#pb-sub.warn { color:var(--orange); }
-.pb-btn { background:none; border:none; cursor:pointer; color:#888; padding:6px; display:flex; align-items:center; border-radius:50%; transition:color .15s; flex-shrink:0; }
-.pb-btn:active { color:var(--text); }
-.pb-btn svg { width:24px; height:24px; }
-.pb-btn.sm svg { width:18px; height:18px; }
-
-/* ── BOTTOM NAV ── */
-.bottom-nav {
-  position:fixed; bottom:0; left:50%; transform:translateX(-50%);
-  width:100%; max-width:var(--max-w);
-  height:var(--tab-h); background:#0d0d0d; border-top:0.5px solid #1a1a1a;
-  display:flex; align-items:center; z-index:40;
-}
-.nav-btn {
-  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:4px; background:none; border:none; cursor:pointer; color:#444; padding:8px 4px;
-  transition:color .18s;
-}
-.nav-btn svg { width:22px; height:22px; }
-.nav-btn span { font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:0.7px; text-transform:uppercase; }
-.nav-btn.active { color:var(--accent); }
-
-/* ── FADE UP ── */
-.fade-up { opacity:0; transform:translateY(10px); transition:opacity .38s ease,transform .38s ease; }
-.fade-up.visible { opacity:1; transform:none; }
-
-/* scrollbar */
-::-webkit-scrollbar { width:2px; }
-::-webkit-scrollbar-thumb { background:#222; border-radius:2px; }
-
-/* map skeleton */
-#map-skeleton {
-  position:absolute; inset:0;
-  background:var(--bg);
-  display:flex; align-items:center; justify-content:center;
-  font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text3);
-  letter-spacing:0.5px;
-  z-index:1;
-  transition:opacity .3s;
-}
-#map-skeleton.hidden { opacity:0; pointer-events:none; }
-.map-wrap { position:relative; }
+/* fade */
+.fade-up{opacity:0;transform:translateY(10px);transition:opacity .38s ease,transform .38s ease}
+.fade-up.visible{opacity:1;transform:none}
+::-webkit-scrollbar{width:2px}
+::-webkit-scrollbar-thumb{background:#222;border-radius:2px}
 </style>
 </head>
 <body>
 <div id="app">
-
   <div id="progress-bar">
     <div id="progress-fill"></div>
     <div id="progress-label">0 / 15</div>
   </div>
-
   <div class="page-header">
     <h1>Андерграундный<br>Ленинград</h1>
-    <p>15 точек · 3 рюмочных · ~8 км · 4–5 часов</p>
+    <p>15 точек · 4 рюмочных · ~8 км · 4–5 часов</p>
   </div>
-
   <div class="listen-all-wrap">
     <button class="listen-all-btn" id="btn-listen-all" onclick="listenAll()">
       <svg viewBox="0 0 24 24" fill="currentColor" id="la-play-icon"><path d="M8 5v14l11-7z"/></svg>
@@ -381,22 +163,16 @@ html,body {
       <span id="la-label">Слушать весь маршрут</span>
     </button>
   </div>
-
   <div class="scroll-area">
-    <div class="tab-panel active" id="tab-route">
-      <div id="route-list"></div>
-    </div>
+    <div class="tab-panel active" id="tab-route"><div id="route-list"></div></div>
     <div class="tab-panel" id="tab-map">
-      <div class="map-wrap" style="position:relative">
+      <div id="map-wrap">
         <div id="map-skeleton">Загружаем карту…</div>
         <div id="map"></div>
       </div>
     </div>
-    <div class="tab-panel" id="tab-people">
-      <div class="people-list" id="people-list"></div>
-    </div>
+    <div class="tab-panel" id="tab-people"><div class="people-list" id="people-list"></div></div>
   </div>
-
 </div>
 
 <div id="player-bar">
@@ -434,117 +210,125 @@ html,body {
 const POINTS = [
   { id:1, name:'«Сайгон»', addr:'Невский пр., 49', type:'gone', icon:'◌',
     lat:59.9298, lng:30.3509, audio:'1.mp3',
-    photo:'https://wsrv.nl/?url=upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Nevsky_prospekt%2C_49.jpg/640px-Nevsky_prospekt%2C_49.jpg',
-    photoCap:'Угол Невского и Владимирского, 1980-е',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Nevsky_49_SPB.jpg/800px-Nevsky_49_SPB.jpg',
+    photoCap:'Невский пр., 49. Угол с Владимирским',
     text:`Угол Невского и Владимирского. Сейчас здесь ничего особенного — ну угол и угол — но с конца шестидесятых по 1989 год вот здесь стояло, пожалуй, самое важное заведение города.
 
-Кафе «Москва». Все называли его Сайгоном. Про название есть одна история — возможно, байка, но очень похожая на правду. Когда в зале запрещали курить, люди выходили на угол. Однажды две девушки закурили прямо у входа, подошёл милиционер: «Что вы тут устроили? Какой-то Сайгон». У столицы Южного Вьетнама была в СССР репутация места полного хаоса — вот и прилипло.
+Кафе «Москва». Все называли его Сайгоном. Про название есть одна история. Когда в зале запрещали курить, люди выходили на угол. Однажды две девушки закурили прямо у входа, подошёл милиционер: «Что вы тут устроили? Какой-то Сайгон». У столицы Южного Вьетнама была в СССР репутация места полного хаоса — вот и прилипло.
 
-Кофейная карта была простая: «Маленький простой» — четырнадцать копеек, «Маленький двойной» — двадцать восемь, именно он стал главным напитком заведения. «Большой двойной» со сгущёнкой — двадцать две копейки, «Большой четверной» — пятьдесят две. Очередь была всегда.
+Кофейная карта: «Маленький простой» — четырнадцать копеек, «Маленький двойной» — двадцать восемь, именно он стал главным напитком заведения. «Большой двойной» со сгущёнкой — двадцать две копейки, «Большой четверной» — пятьдесят две. Очередь была всегда.
 
-Внутри был маленький угловой зал, меньше средней квартиры. Сидячих мест почти не было — люди приходили, выпивали стакан, говорили с кем надо и уходили. И именно из-за этой постоянной текучки здесь за одно утро можно было столкнуться с Бродским, договориться о продаже картины иностранному дипломату и узнать о квартирнике на вечер.
+Внутри был маленький угловой зал, меньше средней квартиры. Сидячих мест почти не было — люди приходили, выпивали стакан, говорили с кем надо и уходили. Именно из-за этой текучки здесь за одно утро можно было столкнуться с Бродским, договориться о продаже картины иностранному дипломату и узнать о квартирнике на вечер.
 
-КГБ за Сайгоном следило, и все об этом прекрасно знали. Говорили, что среди завсегдатаев было немало осведомителей. Но это никого не останавливало — ощущение слежки давно стало частью городского воздуха, привыкли к нему как к сырости.
-
-В 1989-м здание снесли. Тот зал вмещал человек двадцать. Вся эта история — в помещении меньше средней московской квартиры.` },
+КГБ за Сайгоном следило, и все об этом знали. Но это никого не останавливало — ощущение слежки давно стало частью городского воздуха. В 1989-м здание снесли.` },
 
   { id:2, name:'Рюмочная на Пушкинской', addr:'Пушкинская ул., 1', type:'bar', icon:'♦',
     lat:59.9285, lng:30.3565, audio:'2.mp3',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Pushkinskaya_street_SPB.jpg/800px-Pushkinskaya_street_SPB.jpg',
+    photoCap:'Пушкинская улица',
     text:`Добро пожаловать в жанр. Вот она — рюмочная на Пушкинской.
 
-Водка здесь стоила шестьдесят две копейки за сто грамм. Меню писали мелом на доске, женщины за стойкой работали десятилетиями и знали постоянных в лицо. Никакого пива — только водка и кофе, и табличка об этом висит до сих пор.
+Водка здесь стоила шестьдесят две копейки за сто грамм. Меню писали мелом на доске, женщины за стойкой работали десятилетиями и знали постоянных в лицо. Никакого пива — только водка и кофе.
 
-Рихард Васми в пятидесятые ходил на Сенной рынок рисовать с натуры. Грузчиков, пьяниц, людей с тяжёлыми обветренными руками. Не потому что это был какой-то манифест — просто они ему были интересны, живые, нефильтрованные. И рюмочная была продолжением той же логики.
+Рихард Васми в пятидесятые ходил на Сенной рынок рисовать с натуры. Грузчиков, пьяниц, людей с тяжёлыми обветренными руками. Не потому что это был манифест — просто они ему были интересны, живые, нефильтрованные. И рюмочная была продолжением той же логики.
 
-Шварц, Арефьев, Шагин — все крутились в этом районе. Здесь не нужно было объяснять кто ты и чем занимаешься. Пришёл, выпил, послушал разговоры за соседним столиком, ушёл.
+Шварц, Арефьев, Шагин — все крутились в этом районе. Здесь не нужно было объяснять кто ты. Пришёл, выпил, послушал разговоры за соседним столиком, ушёл.
 
 По одной за эпоху — и идём дальше.` },
 
   { id:3, name:'Дом Довлатова', addr:'ул. Рубинштейна, 23', type:'museum', icon:'▭',
     lat:59.9265, lng:30.3489, audio:'3.mp3',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Rubinshteyna_23_SPb.jpg/800px-Rubinshteyna_23_SPb.jpg',
+    photoCap:'ул. Рубинштейна, 23',
     text:`Дом двадцать три, шестой этаж. Коммунальная квартира — шесть комнат, общий коридор, соседи через стенку. Довлатов прожил здесь почти двадцать лет, с конца пятидесятых до эмиграции в 1979-м. Из всего что здесь было, сохранилась только зелёная изразцовая печь в его комнате.
 
-Днём он писал репортажи для «Советского спорта» — это давало прописку и деньги. По ночам писал прозу, которую некуда было отнести. Несколько раз пробовал опубликоваться официально — каждый раз редактор возвращал рукопись. Не за политику — просто писал про реальных людей слишком узнаваемо, и это пугало сильнее любой идеологии.
+Днём он писал репортажи для «Советского спорта» — это давало прописку и деньги. По ночам писал прозу, которую некуда было отнести. Несколько раз пробовал опубликоваться официально — каждый раз редактор возвращал рукопись. Не за политику — просто писал про реальных людей слишком узнаваемо.
 
-Рукописи расходились в самиздате — перепечатанные на машинке, зачитанные до дыр. Жил в двух режимах одновременно, в одном теле, в одной квартире.
+Рукописи расходились в самиздате — перепечатанные на машинке, зачитанные до дыр.
 
 В Ленинград он больше не вернулся. Умер в Нью-Йорке в 1990-м — через год после того как здесь наконец стало можно публиковать всё что угодно. Немного не успел.
 
-Зайди во двор — типичный петербургский колодец, тёмный, узкий, небо сверху узкой полосой. Довлатов ставил такие дворы в каждый второй рассказ.` },
+Зайди во двор — типичный петербургский колодец, тёмный, узкий, небо сверху узкой полосой.` },
 
   { id:4, name:'Ленинградский Рок-клуб', addr:'ул. Рубинштейна, 13', type:'yard', icon:'·',
     lat:59.9271, lng:30.3483, audio:'4.mp3',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Viktor_Tsoy_1988.jpg/600px-Viktor_Tsoy_1988.jpg',
+    photoCap:'Виктор Цой, 1988',
     text:`Буквально двести метров от Довлатова — и мы у обычной парадной в обычном доме. Никакой вывески. А с 1981 года здесь работал Ленинградский рок-клуб — первая в СССР легальная площадка для неофициальной музыки.
 
-КГБ дало разрешение, искренне рассчитывая что контролируемый клуб лучше неконтролируемых квартирников. Вышло ровно наоборот. Здесь играли «Кино», «Аквариум», «Зоопарк», «Алиса». Билеты расходились за несколько часов, люди стояли в очереди с ночи.
+КГБ дало разрешение, искренне рассчитывая что контролируемый клуб лучше неконтролируемых квартирников. Вышло ровно наоборот. Здесь играли «Кино», «Аквариум», «Зоопарк», «Алиса». Билеты расходились за несколько часов.
 
-Тимур Новиков рисовал афиши вручную. Гурьянов играл на барабанах в «Кино» и был художником «Новых художников» — и никогда не видел в этом никакого противоречия. Курёхин со своей «Поп-механикой» стирал любую границу между музыкой, живописью и перформансом — приходил с оркестром, с художниками, с живыми козами однажды.
+Тимур Новиков рисовал афиши вручную. Гурьянов играл на барабанах в «Кино» и был художником «Новых художников» — и никогда не видел в этом никакого противоречия.
 
-Рубинштейна, 13 и Рубинштейна, 23 — двести метров. Довлатов и Цой были буквально соседями. Весь этот мир помещался в нескольких кварталах.` },
+Рубинштейна, 13 и Рубинштейна, 23 — двести метров. Довлатов и Цой были буквально соседями.` },
 
   { id:5, name:'Двор Капеллы', addr:'Наб. Мойки, 20', type:'yard', icon:'·',
     lat:59.9397, lng:30.3195, audio:'5.mp3',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Capella_yard_SPB.jpg/800px-Capella_yard_SPB.jpg',
+    photoCap:'Двор Капеллы, наб. Мойки',
     text:`Мойка, двадцать. Заходим через ворота. Вот этот двор был в каждом неофициальном путеводителе города — если бы такие путеводители существовали вообще.
 
-В советском городе с его дворниками-осведомителями и участковыми — найти место где можно раствориться было задачей нетривиальной. А здесь — зашёл с Невского, прошёл насквозь, вышел на набережную. Никто не спрашивает зачем ты здесь. Просто двор, через который все ходят.
+В советском городе с его дворниками-осведомителями — найти место где можно раствориться было задачей нетривиальной. А здесь — зашёл с Невского, прошёл насквозь, вышел на набережную. Никто не спрашивает зачем ты здесь.
 
-Фарцовщики знали такие дворы наизусть. Люди которым нужно было передать рукопись — тоже. Не романтика, просто практическая городская география которую каждый осваивал на ходу.
+Фарцовщики знали такие дворы наизусть. Люди которым нужно было передать рукопись — тоже. Не романтика, просто практическая городская география.
 
 Пройди насквозь — обрати внимание как меняется звук. Невский за спиной, Мойка впереди, тридцать секунд тишины между ними.` },
 
   { id:6, name:'Музей Ахматовой', addr:'Литейный пр., 53', type:'museum', icon:'▭',
     lat:59.9404, lng:30.3594, audio:'6.mp3',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Anna_Akhmatova_1922.jpg/600px-Anna_Akhmatova_1922.jpg',
+    photoCap:'Анна Ахматова, 1922',
     text:`Вот он — Фонтанный дом. Вход со двора, не с улицы — ищи арку. Ахматова прожила здесь с 1926-го по 1952-й. Двадцать шесть лет. И за эти годы через неё прошло буквально всё что случилось со страной.
 
 Арест сына Льва — дважды. Постановление ЦК 1946 года, где Жданов назвал её «блудницей и монахиней» и запретил публиковать.
 
-«Реквием» писался в уме и на клочках бумаги которые сразу сжигались. Несколько близких людей заучивали строфы наизусть, чтобы текст не существовал на бумаге вообще. Ходили к ней, читали, запоминали, уходили. Живая память вместо архива. Опубликовали только в 1987-м — через двадцать один год после её смерти.
+«Реквием» писался в уме и на клочках бумаги которые сразу сжигались. Несколько близких людей заучивали строфы наизусть. Ходили к ней, читали, запоминали, уходили. Живая память вместо архива. Опубликовали только в 1987-м — через двадцать один год после её смерти.
 
-Молодой Бродский пришёл к ней в начале шестидесятых — ему было двадцать с небольшим, никаких публикаций. Она приняла его всерьёз. Для поэта без имени это значило очень много.
-
-В конце музея — воссозданный кабинет Бродского из его нью-йоркской квартиры. Он никогда не жил в этом доме, но его сюда привезли после смерти.` },
+Молодой Бродский пришёл к ней в начале шестидесятых — ему было двадцать с небольшим, никаких публикаций. Она приняла его всерьёз.` },
 
   { id:7, name:'KGallery', addr:'Наб. Фонтанки, 24', type:'museum', icon:'▭',
     lat:59.9363, lng:30.3482, audio:'7.mp3',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Timur_Novikov_1990s.jpg/600px-Timur_Novikov_1990s.jpg',
+    photoCap:'Тимур Новиков, 1990-е',
     text:`Выходим на Фонтанку. Где-то на этой набережной — точный адрес так и не зафиксирован — в восьмидесятые находилась квартира Тимура Новикова. Галерея «АССА» — расселённая коммуналка, которую он превратил в выставочное место и точку притяжения.
 
-Сюда приходил Цой — они с Новиковым вместе делали обложки и афиши. Здесь бывал Курёхин, Гребенщиков, Африка. Алексей Учитель снимал здесь часть «АССЫ» в 1987-м — и название фильма взял прямо отсюда. Место давало название фильму, фильм давал название эпохе.
+Сюда приходил Цой — они с Новиковым вместе делали обложки и афиши. Алексей Учитель снимал здесь часть «АССЫ» в 1987-м — и название фильма взял прямо отсюда.
 
-Новиков рисовал на мешковине, обоях, кусках найденной ткани. Не потому что не было денег на холст — принципиально не хотел делать из живописи что-то торжественное. Сделал — показал — пошёл дальше.
+Новиков рисовал на мешковине, обоях, кусках найденной ткани. Сделал — показал — пошёл дальше.
 
-KGallery сегодня одна из лучших частных галерей города с коллекцией именно этого периода. Живопись Михнова или Васми на экране и на стене — принципиально разный опыт.` },
+KGallery сегодня одна из лучших частных галерей города с коллекцией именно этого периода.` },
 
   { id:8, name:'Рюмочная «Маяк»', addr:'ул. Маяковского, 20', type:'bar', icon:'♦',
     lat:59.9342, lng:30.3602, audio:'8.mp3',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Mayak_bar_SPb.jpg/800px-Mayak_bar_SPb.jpg',
+    photoCap:'Рюмочная «Маяк»',
     text:`Маяковского, двадцать — вот она, «Маяк». Заходим.
 
-На стене — Ленин. Не в смысле иронии — просто висит портрет как висел всегда, и никто его не снял потому что незачем. Это и отличает «Маяк» от мест которые пытаются воссоздать советскую атмосферу: здесь её никто не воссоздавал, она просто не успела исчезнуть.
+На стене — Ленин. Не в смысле иронии — просто висит портрет как висел всегда, и никто его не снял потому что незачем. Здесь никто не воссоздавал советскую атмосферу — она просто не успела исчезнуть.
 
-Арефьев в пятидесятые ходил в портовые кварталы, в такие вот забегаловки — и рисовал людей которых никто не собирался рисовать. Грузчиков, пьяниц, старух с авоськами. Советская живопись была занята сталеварами с правильными лицами, а Арефьев рисовал тех кого видел за стойкой рядом.
+Арефьев в пятидесятые ходил в портовые кварталы, в такие вот забегаловки — и рисовал людей которых никто не собирался рисовать. Советская живопись была занята сталеварами с правильными лицами, а Арефьев рисовал тех кого видел за стойкой рядом.
 
-Борщ здесь до сих пор дешевле чем в любом кафе на соседнем Невском. Выпей что-нибудь и посмотри на Ленина. Люди которые рисовали всё что угодно кроме официальных сюжетов — смотрели на такие портреты каждый день.
-
-Обрати внимание на стойку — быстро, без лишних слов, без улыбок. Это не грубость, это жанр.` },
+Борщ здесь до сих пор дешевле чем в любом кафе на соседнем Невском. Выпей что-нибудь и посмотри на Ленина. Это не грубость, это жанр.` },
 
   { id:9, name:'Арт-центр Пушкинская 10', addr:'Лиговский пр., 53', type:'museum', icon:'▭',
     lat:59.9258, lng:30.3603, audio:'9.mp3',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Pushkinskaya_10_entrance.jpg/800px-Pushkinskaya_10_entrance.jpg',
+    photoCap:'Арт-центр «Пушкинская-10»',
     text:`Лиговский, пятьдесят три. Ищи арку — вход не с улицы, со двора. Немного спрятано, немного надо знать куда идти. Это не случайно.
 
-В 1989 году несколько художников просто зашли в пустующий жилой дом и начали там работать. Дом стоял расселённым, охраны не было. Они принесли холсты, краски — и остались. По советским меркам абсолютно незаконный захват жилплощади. По меркам 1989 года — государству было уже не до этого.
+В 1989 году несколько художников просто зашли в пустующий жилой дом и начали там работать. По советским меркам абсолютно незаконный захват жилплощади. По меркам 1989 года — государству было уже не до этого.
 
-Потом было несколько лет судов с застройщиками. Отстояли. Сейчас здесь Музей нонконформистского искусства и несколько десятков мастерских, где художники работают прямо сейчас — в тех же комнатах, с теми же видами из окон.
+Потом было несколько лет судов с застройщиками. Отстояли. Сейчас здесь Музей нонконформистского искусства и несколько десятков мастерских, где художники работают прямо сейчас.
 
-Коллекция собиралась не через закупки, а через личные связи, через доверие. Это чувствуется когда ходишь по залам.
-
-После музея пройди по мастерским на верхних этажах — там открыто. Люди там реально работают, не для туристов.` },
+Коллекция собиралась не через закупки, а через личные связи, через доверие. Это чувствуется когда ходишь по залам.` },
 
   { id:'9b', name:'Рюмочная «Достоевская»', addr:'Разъезжая ул., 2', type:'bar', icon:'♦',
     lat:59.9241, lng:30.3512, audio:null,
     text:`Разъезжая, два — вот она. Два шага от Пушкинской-10, ближайший к маршруту аутентичный распивочный адрес.
 
-Советская рюмочная с атмосферой 1980–1990-х — без реконструкции, без концепции, просто так и осталась. Интерьер который никто специально не создавал. Постоянные которые здесь с тех самых пор.
+Советская рюмочная с атмосферой 1980–1990-х — без реконструкции, без концепции, просто так и осталась. Интерьер который никто специально не создавал.
 
-Этот район — Достоевская, Владимирская — был плотно заселён людьми из тех кругов. Здесь снимали коммуналки, здесь ходили пешком между Сайгоном и рок-клубом и обратно. Рюмочная на таком углу — просто часть пейзажа.
+Этот район — Достоевская, Владимирская — был плотно заселён людьми из тех кругов. Здесь снимали коммуналки, здесь ходили пешком между Сайгоном и рок-клубом и обратно.
 
 Выпей, отдышись. До Фурштатской ещё идти.` },
 
@@ -552,57 +336,59 @@ KGallery сегодня одна из лучших частных галерей
     lat:59.9441, lng:30.3647, audio:'10.mp3',
     text:`Вот этот двор. Никакой таблички нет и никогда не было. Обычный петербургский колодец. Но именно в коммунальной квартире этого дома с конца пятидесятых по 1988 год жил и работал Евгений Михнов-Войтенко — один из самых важных художников ленинградского андерграунда, про которого при жизни почти никто не знал.
 
-Официально он был декоратором в театре — это давало прописку. В остальное время — абстракция. Михнов изобрёл собственную технику: подвижный стол, краска растекается сама — непредсказуемо, против воли художника. Работал с мокрым картоном, разбрызгивал, соскабливал. Некоторые работы так и не развернул ни разу.
+Официально он был декоратором в театре — это давало прописку. В остальное время — абстракция. Михнов изобрёл собственную технику: подвижный стол, краска растекается сама — непредсказуемо, против воли художника. Некоторые работы так и не развернул ни разу.
 
 Он не устраивал квартирных выставок, не толкался в Сайгоне. Просто писал — для себя, в тишине.
 
-Умер в 1988-м. Через год его начали открывать. Сейчас его работы уходят на аукционах за сотни тысяч долларов. А тогда лежали в рулонах вот здесь, на шестом этаже.
+Умер в 1988-м. Через год его начали открывать. Сейчас его работы уходят на аукционах за сотни тысяч долларов.
 
 Посмотри на окна. Вот так и выглядит история про которую никто не знал пока она происходила.` },
 
   { id:11, name:'Академия художеств', addr:'Университетская наб., 17', type:'yard', icon:'·',
     lat:59.9381, lng:30.2916, audio:'11.mp3',
-    soon:'Васильевский остров — отдельный маршрут. Скоро.',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/SPB_Academy_of_Arts.jpg/800px-SPB_Academy_of_Arts.jpg',
+    photoCap:'Академия художеств, Университетская наб.',
+    soon:{title:'Васильевский остров', text:'Арефьевский круг, дворы линий, история ОНЖ — отдельный маршрут. Скоро.'},
     text:`Васильевский остров. Академия художеств, основана в 1757-м. И вот здесь, в художественной школе при Академии, в конце сороковых учились несколько человек которые потом стали первым ленинградским андерграундом.
 
-Арефьев, Васми, Шагин, Шварц, Гудзенко. Они познакомились здесь, и здесь же поняли что официальное советское искусство им совершенно неинтересно. Академия давала технику — и одновременно показывала границы. А когда видишь границы — хочется понять что за ними.
+Арефьев, Васми, Шагин, Шварц, Гудзенко. Они познакомились здесь, и здесь же поняли что официальное советское искусство им совершенно неинтересно.
 
 Они называли себя «Орден нищенствующих живописцев». ОНЖ. Работали в стол, денег не было, выставок не было, признания не было. Просто рисовали — потому что не могли не рисовать.
 
-Шемякин тоже учился здесь — и был исключён. Устроился такелажником в Эрмитаж — вот туда, в пяти минутах по набережной. В закрытой стране Эрмитаж был единственным живым контактом с мировым искусством.` },
+Шемякин тоже учился здесь — и был исключён. Устроился такелажником в Эрмитаж — вот туда, в пяти минутах по набережной.` },
 
   { id:12, name:'Государственный Эрмитаж', addr:'Дворцовая пл., 2', type:'museum', icon:'▭',
     lat:59.9399, lng:30.3146, audio:'12.mp3',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Hermitage_Museum_SPB.jpg/800px-Hermitage_Museum_SPB.jpg',
+    photoCap:'Государственный Эрмитаж',
     text:`Эрмитаж. Три миллиона экспонатов. Но сейчас нас интересует не это.
 
-Шемякин работал здесь такелажником — физически перемещал произведения и получил доступ к запасникам. Представь: ты двадцатилетний художник в закрытой стране. И вдруг — Рубенс, Рембрандт, Матисс вживую, каждый день. Как иметь ключ от библиотеки когда все остальные читают только то что разрешено.
+Шемякин работал здесь такелажником — физически перемещал произведения и получил доступ к запасникам. Представь: ты двадцатилетний художник в закрытой стране. И вдруг — Рубенс, Рембрандт, Матисс вживую, каждый день.
 
-Зайди в залы с фламандцами — именно там Шемякин проводил часы. Плотная фактура, тьма и свет, мистика бытовых предметов. Его живопись — разговор с этими работами, пропущенный через петербургский миф и советскую реальность.
+Зайди в залы с фламандцами — именно там Шемякин проводил часы. Плотная фактура, тьма и свет, мистика бытовых предметов.
 
-Встань в зале с Рембрандтом и подумай — вот что видел человек который потом ночью рисовал абстракцию в своей коммуналке на Фурштатской. Это расстояние между Рембрандтом и коммуналкой — и есть ленинградское искусство того времени.` },
+Встань в зале с Рембрандтом и подумай — вот что видел человек который потом ночью рисовал абстракцию в своей коммуналке на Фурштатской.` },
 
   { id:13, name:'Котельная «Камчатка»', addr:'ул. Блохина, 15', type:'boiler', icon:'▲',
     lat:59.9531, lng:30.2993, audio:'13.mp3',
-    soon:'Петроградская сторона — отдельный маршрут. Скоро.',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Kamchatka_boiler_room_SPb.jpg/800px-Kamchatka_boiler_room_SPb.jpg',
+    photoCap:'Котельная «Камчатка», ул. Блохина, 15',
+    soon:{title:'Петроградская сторона', text:'Котельные, митьки, каналы которые рисовал Васми — отдельный маршрут. Скоро.'},
     text:`Петроградская сторона, улица Блохина. Вот этот подвал. Маленькая котельная, сейчас музей — но физически всё подлинное: топка, уголь, инструменты, топчан у стены.
 
 Цой работал здесь кочегаром. Каспарян тоже. Смена длилась сутки, потом двое суток свободных. За смену нужно было поддерживать огонь — и всё. Это давало официальное место работы, прописку и огромное количество свободного времени.
 
-Без официального места работы — статья 209, тунеядство. По ней в 1964-м судили Бродского и отправили на пять лет в Архангельскую область. Кочегарка защищала от этого.
-
-Васми, Шагин, Арефьев — все они работали сторожами и кочегарами по всему городу. Здесь писались песни, здесь хранились холсты, сюда приходили друзья.
+Без официального места работы — статья 209, тунеядство. По ней в 1964-м судили Бродского и отправили на пять лет в Архангельскую область.
 
 Встань у топки. Ты затопил, поставил чайник, достал тетрадь. Следующие двадцать часов — твои.` },
 
   { id:14, name:'Синичка / «На ход ноги»', addr:'Каменноостровский пр., 14', type:'bar', icon:'♦',
     lat:59.9628, lng:30.3145, audio:'14.mp3',
-    text:`Вот мы и добрались. Петроградская сторона — это территория арефьевского круга и митьков. Именно здесь они снимали коммуналки, работали в котельных, ходили друг к другу в гости. Васми рисовал именно эти каналы, эти дворы, эти туманные утра.
+    text:`Вот мы и добрались. Петроградская сторона — это территория арефьевского круга и митьков. Именно здесь они снимали коммуналки, работали в котельных, ходили друг к другу в гости.
 
-«Синичка» на Каменноостровском — домашняя кухня, настойки, уютная теснота. «На ход ноги» на Красносельской — круглосуточная, супы, окрошка, народное место без претензий. Выбирай по настроению.
+«Синичка» на Каменноостровском — домашняя кухня, настойки, уютная теснота. «На ход ноги» на Красносельской — круглосуточная, супы, окрошка, народное место без претензий.
 
-Орден нищенствующих живописцев пил в таких местах. Арефьев, Васми, Шагин, Шварц — большинство из них при жизни не знал почти никто. Работы лежали в рулонах по коммуналкам, выставок не было, денег не было. Просто рисовали, потому что не могли не рисовать.
-
-Сейчас их работы в музеях и на аукционах — а они вот здесь ходили, по этим улицам, мимо этих домов.
+Орден нищенствующих живописцев пил в таких местах. Арефьев, Васми, Шагин, Шварц — большинство из них при жизни не знал почти никто. Работы лежали в рулонах по коммуналкам. Просто рисовали, потому что не могли не рисовать.
 
 Последняя рюмка — за них.` }
 ];
@@ -613,97 +399,85 @@ const TRANSITIONS = [
   { after:4,  audio:'0_2.mp3', title:'Канал который не построили', sub:'15 мин',
     text:'Пётр I хотел сделать Васильевский остров «маленьким Амстердамом» — вместо улиц прорыть каналы. Поручил Меншикову. Меншиков деньги растратил, а каналы прорыл такими узкими, что по ним не проходила даже лодка. В итоге засыпали — остались прямые «линии» Васильевского острова, которые до сих пор нумеруются как улицы Амстердама.' },
   { after:6,  audio:'0_3.mp3', title:'Данила Багров шёл здесь', sub:'Аничков мост',
-    text:'Набережная Фонтанки и Аничков мост — это кадры «Брата» Балабанова, снятого в 1996 году за 99 600 долларов. Квартиру брата Виктора разместили на набережной канала Грибоедова, 2 — из окна видна церковь Спаса на Крови. На постаменте одного из коней Клодта сохранены следы от немецкого снаряда 1942 года — их решили не заделывать.' },
+    text:'Набережная Фонтанки и Аничков мост — кадры «Брата» Балабанова, снятого в 1996 году за 99 600 долларов. Квартиру брата Виктора разместили на набережной канала Грибоедова, 2 — из окна видна церковь Спаса на Крови. На постаменте одного из коней Клодта сохранены следы от немецкого снаряда 1942 года — их решили не заделывать.' },
   { after:8,  audio:'0_4.mp3', title:'Город на костях', sub:'5 мин',
     text:'До основания Петербурга здесь были финские деревни и шведские мызы. Легенда о «пустом болоте» — красивый миф. Строили крепостные крестьяне: в 1704 году на стройке числилось 40 000 человек, сменявшихся каждые три месяца. Под Петропавловской крепостью забили сорок тысяч свай. Город стоит не на болоте. Город стоит на сваях и на костях.' },
   { after:'9b', audio:'0_5.mp3', title:'12 000 сортов семян', sub:'20 мин',
     text:'Всесоюзный институт растениеводства хранил коллекцию из более чем 12 000 образцов семян — крупнейшую в мире. Во время блокады сотрудники охраняли запасы и умирали от голода. Девять человек погибли, сидя рядом с мешками риса, картофеля и зерна — которые можно было съесть. Они не тронули ни одного зерна.' },
   { after:10, audio:'0_6.mp3', title:'Литейный в 1990-х', sub:'Бандитский Петербург',
-    text:'Литейный проспект — одна из ключевых улиц сериала «Бандитский Петербург» (2000). Квартира Челищева снималась на Литейном, 61. «Кресты» на Арсенальной набережной закрылись в 2017-м после 125 лет работы, сейчас превращаются в культурный комплекс. Красно-кирпичные башни стоят по-прежнему.' },
+    text:'Литейный проспект — одна из ключевых улиц сериала «Бандитский Петербург» (2000). Квартира Челищева снималась на Литейном, 61. «Кресты» на Арсенальной набережной закрылись в 2017-м после 125 лет работы, сейчас превращаются в культурный комплекс.' },
   { after:12, title:'Почему все работали кочегарами', sub:'30 мин',
-    text:'Статья 209 УК РСФСР — «тунеядство». Без официального места работы человека можно было привлечь к уголовной ответственности. В 1964-м по этой статье судили Бродского. На суде судья спросила: «Кто вам разрешил называть себя поэтом?» Он ответил: «Я думал, что это от Бога». Приговор: пять лет в Архангельской области. Кочегарка давала прописку и защиту от этой статьи.' }
+    text:'Статья 209 УК РСФСР — «тунеядство». Без официального места работы человека можно было выслать из города. В 1964-м по этой статье судили Бродского. На суде судья спросила: «Кто вам разрешил называть себя поэтом?» Он ответил: «Я думал, что это от Бога». Приговор: пять лет в Архангельской области. Кочегарка давала прописку и защиту от этой статьи.' }
 ];
 
 const PEOPLE = [
   { section:'Художники', items:[
-    { name:'Александр Арефьев', dates:'1931–1978', bio:'Лидер Ордена нищенствующих живописцев. Жёсткий экспрессионизм — улица, маргиналы, портовые. Учился при Академии, отчислён. Несколько арестов. Эмигрировал в 1977-м, умер в Париже от алкоголизма через год. При жизни практически не выставлялся.', where:'Русский музей, Пушкинская 10' },
-    { name:'Рихард Васми', dates:'1929–1998', bio:'Лирик арефьевского круга. Городские пейзажи без воздушной перспективы — дворы, каналы, набережные Петроградской. Работал кочегаром и в типографии. Ни одной персональной выставки при жизни.', where:'Пушкинская 10, KGallery' },
-    { name:'Владимир Шагин', dates:'1926–1986', bio:'Участник арефьевского круга. Тихие пейзажи, дворы, городские окраины. Отец Дмитрия Шагина — основателя митьков. Работал на заводе, потом кочегаром.' },
-    { name:'Шолом Шварц', dates:'1929–2003', bio:'Участник арефьевского круга. Портреты, жанровые сцены, городские типажи. Работал реставратором. Дожил до признания — работы вошли в музейные коллекции в 2000-е.' },
-    { name:'Евгений Михнов-Войтенко', dates:'1932–1988', bio:'Жил на Фурштатской, 14–16. Абстракция с конца 1950-х. Подвижный стол, мокрый картон, разбрызгивание и соскабливание. Декоратор в театре. Работал в полной изоляции. Умер в 1988-м. Через год стал знаменит.', where:'Русский музей, KGallery' },
+    { name:'Александр Арефьев', dates:'1931–1978', bio:'Лидер Ордена нищенствующих живописцев. Жёсткий экспрессионизм — улица, маргиналы, портовые. Учился при Академии, отчислён. Несколько арестов. Эмигрировал в 1977-м, умер в Париже. При жизни практически не выставлялся.', where:'Русский музей, Пушкинская 10' },
+    { name:'Рихард Васми', dates:'1929–1998', bio:'Лирик арефьевского круга. Городские пейзажи без воздушной перспективы — дворы, каналы, набережные Петроградской. Работал кочегаром. Ни одной персональной выставки при жизни.', where:'Пушкинская 10, KGallery' },
+    { name:'Владимир Шагин', dates:'1926–1986', bio:'Участник арефьевского круга. Тихие пейзажи, дворы, городские окраины. Отец Дмитрия Шагина — основателя митьков.' },
+    { name:'Шолом Шварц', dates:'1929–2003', bio:'Участник арефьевского круга. Портреты, жанровые сцены. Работал реставратором. Дожил до признания.' },
+    { name:'Евгений Михнов-Войтенко', dates:'1932–1988', bio:'Жил на Фурштатской, 14–16. Абстракция с конца 1950-х. Подвижный стол, мокрый картон, разбрызгивание и соскабливание. Работал в полной изоляции. Умер в 1988-м. Через год стал знаменит.', where:'Русский музей, KGallery' },
     { name:'Михаил Шемякин', dates:'1943', bio:'Учился при Академии — исключён. Такелажник в Эрмитаже. Метафизический синтетизм. Принудительная психиатрическая госпитализация 1971-го. Высылка из СССР.', where:'Монумент в Петропавловке' },
-    { name:'Тимур Новиков', dates:'1958–2002', bio:'Основатель «Новых художников» (1982). Галерея «АССА» на Фонтанке. Мешковина и найденные ткани. Дружил с Цоем, Гребенщиковым, Курёхиным. Основал «Новую Академию изящных искусств». Ослеп в 1990-е.', where:'Русский музей, Пушкинская 10' },
-    { name:'Георгий Гурьянов', dates:'1961–2013', bio:'Барабанщик «Кино» и художник «Новых художников» — никогда не разделял эти роли. Строгая классицизирующая живопись, образы атлетов. После смерти Цоя сосредоточился на живописи.', where:'Петербургские галереи' },
+    { name:'Тимур Новиков', dates:'1958–2002', bio:'Основатель «Новых художников» (1982). Галерея «АССА» на Фонтанке. Мешковина и найденные ткани. Дружил с Цоем, Гребенщиковым, Курёхиным. Ослеп в 1990-е.', where:'Русский музей, Пушкинская 10' },
+    { name:'Георгий Гурьянов', dates:'1961–2013', bio:'Барабанщик «Кино» и художник «Новых художников» — никогда не разделял эти роли. После смерти Цоя сосредоточился на живописи.', where:'Петербургские галереи' },
   ]},
   { section:'Объединения', items:[
     { name:'Орден нищенствующих живописцев', dates:'конец 1940-х — 1970-е', bio:'Самоназвание арефьевского круга. Арефьев, Васми, Шагин, Шварц, Гудзенко. Никаких выставок, никаких деклараций — просто рисовали.' },
     { name:'Новые художники', dates:'1982 — конец 1980-х', bio:'Объединение вокруг Тимура Новикова. Быстрая живопись на найденных материалах, связь с рок-культурой, перформансы.' },
-    { name:'Митьки', dates:'с 1984', bio:'Вокруг Дмитрия Шагина — сына Владимира Шагина. Традиция передалась буквально от отца к сыну в одном районе. Ватник, тельняшка, портвейн, смирение и доброта.' },
+    { name:'Митьки', dates:'с 1984', bio:'Вокруг Дмитрия Шагина. Традиция передалась буквально от отца к сыну в одном районе. Ватник, тельняшка, портвейн, смирение и доброта.' },
     { name:'ТЭИИ', dates:'1981–1988', bio:'Товарищество экспериментального изобразительного искусства. Первая полулегальная организация неофициальных художников Ленинграда.' },
   ]},
   { section:'Поэты и писатели', items:[
-    { name:'Иосиф Бродский', dates:'1940–1996', bio:'Завсегдатай Сайгона. Суд 1964 года за тунеядство — поворотный момент для всего поколения. Нобелевская премия 1987 года. Эмигрировал в 1972-м. В Петербург не вернулся.' },
-    { name:'Сергей Довлатов', dates:'1941–1990', bio:'Жил на Рубинштейна, 23. Работал в официальной прессе и писал в стол. Эмигрировал в 1979-м, умер в Нью-Йорке в 1990-м — через год после того как его наконец стало можно публиковать.' },
+    { name:'Иосиф Бродский', dates:'1940–1996', bio:'Завсегдатай Сайгона. Суд 1964 года за тунеядство — поворотный момент для всего поколения. Нобелевская премия 1987 года. В Петербург не вернулся.' },
+    { name:'Сергей Довлатов', dates:'1941–1990', bio:'Жил на Рубинштейна, 23. Работал в официальной прессе и писал в стол. Эмигрировал в 1979-м, умер в Нью-Йорке в 1990-м.' },
     { name:'Роальд Мандельштам', dates:'1932–1961', bio:'Поэт, духовный центр арефьевского круга. Умер от туберкулёза в двадцать девять лет. Арефьев называл его самым важным человеком в своей жизни.' },
   ]},
   { section:'Музыканты', items:[
-    { name:'Виктор Цой', dates:'1962–1990', bio:'Кочегар котельной «Камчатка» на Блохина, 15. Лидер группы «Кино». Дружил с Тимуром Новиковым, делал с ним обложки и афиши. Погиб в автокатастрофе в 1990-м.' },
+    { name:'Виктор Цой', dates:'1962–1990', bio:'Кочегар котельной «Камчатка» на Блохина, 15. Лидер группы «Кино». Дружил с Тимуром Новиковым. Погиб в автокатастрофе в 1990-м.' },
     { name:'Борис Гребенщиков', dates:'1953', bio:'Лидер «Аквариума». Был вписан в ту же среду что и художники — общие квартирники, общие места.' },
     { name:'Сергей Курёхин', dates:'1954–1996', bio:'Пианист, композитор, перформансист. «Поп-механика» — масштабные перформансы на стыке музыки, театра и изобразительного искусства.' },
   ]},
   { section:'Хранители', items:[
-    { name:'Яков Друскин', dates:'1902–1980', bio:'Философ, хранитель архива обэриутов — Хармса, Введенского, Олейникова. В блокаду вынес рукописи в чемодане. Без него не было бы Хармса в том виде в котором мы его знаем.' },
+    { name:'Яков Друскин', dates:'1902–1980', bio:'Философ, хранитель архива обэриутов. В блокаду вынес рукописи Хармса в чемодане. Без него не было бы Хармса в том виде в котором мы его знаем.' },
   ]},
   { section:'Фотографы', items:[
-    { name:'Борис Смелов (Пти-Борис)', dates:'1951–1998', bio:'Визуальный поэт ленинградских подворотен. Чёрно-белые снимки дворов-колодцев, брандмауэров и пустынных переулков вокруг Владимирской. Циклы «На Пряжке» и «Натюрморт с рыбой».', where:'Архивы РОСФОТО' },
-    { name:'Геннадий Приходько', dates:'1950-е — 1980-е', bio:'Репортажный хроникёр андерграунда. На его кадрах — лица молодых, ещё никому не известных музыкантов на траве или подоконниках коммуналок. Снимал «Эльфийский садик» и ленинградские квартирники.' },
+    { name:'Борис Смелов (Пти-Борис)', dates:'1951–1998', bio:'Визуальный поэт ленинградских подворотен. Чёрно-белые снимки дворов-колодцев и брандмауэров вокруг Владимирской. Циклы «На Пряжке» и «Натюрморт с рыбой».', where:'Архивы РОСФОТО' },
+    { name:'Геннадий Приходько', dates:'1950-е — 1980-е', bio:'Репортажный хроникёр андерграунда. На его кадрах — лица молодых музыкантов на траве или подоконниках коммуналок. Снимал «Эльфийский садик» и ленинградские квартирники.' },
   ]},
   { section:'Сквоты', items:[
-    { name:'Пушкинская, 10', dates:'1989 — сейчас', bio:'Главный и единственный выживший сквот Ленинграда. В 1989-м художники заняли заброшенный дом на Лиговском, 53. После долгих судов с застройщиком легализовался. Сейчас — Арт-центр «Пушкинская-10», музей нонконформистского искусства и действующие мастерские.', where:'Лиговский пр., 53 — точка 9 маршрута' },
-    { name:'Сквот на Фонтанке, 145', dates:'начало 1990-х', bio:'Цитадель авангарда и рейв-культуры. Создан Тимуром Новиковым и Георгием Гурьяновым. Первое российское техно, показы мод, Мамышев-Монро. Эстетика «Новой Академии» — никакого панкового хаоса.' },
+    { name:'Пушкинская, 10', dates:'1989 — сейчас', bio:'Главный и единственный выживший сквот Ленинграда. После долгих судов с застройщиком легализовался. Сейчас — Арт-центр «Пушкинская-10» и действующие мастерские.', where:'Лиговский пр., 53 — точка 9 маршрута' },
+    { name:'Сквот на Фонтанке, 145', dates:'начало 1990-х', bio:'Цитадель авангарда и рейв-культуры. Создан Тимуром Новиковым и Георгием Гурьяновым. Первое российское техно, показы мод, Мамышев-Монро.' },
     { name:'Сквот «ННН»', dates:'конец 1980-х', bio:'Неформальное Некоммерческое Направление, Невский, 141. Основал Святослав Задерий («Нате!»). Репетиционные точки в комнатах, стены в граффити, круглосуточные перформансы.' },
   ]}
 ];
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
-
-function typeIcon(type) {
-  return { bar:'♦', gone:'◌', museum:'▭', yard:'·', boiler:'▲' }[type] || '·';
-}
-
-const visited = new Set(JSON.parse(localStorage.getItem('visited')||'[]'));
-const totalPoints = POINTS.length;
-
-function saveVisited() {
-  localStorage.setItem('visited', JSON.stringify([...visited]));
-  updateProgress();
-}
-
-function updateProgress() {
-  const pct = Math.round(visited.size / totalPoints * 100);
-  document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('progress-label').textContent = visited.size + ' / ' + totalPoints;
+function typeIcon(t){return{bar:'♦',gone:'◌',museum:'▭',yard:'·',boiler:'▲'}[t]||'·'}
+const visited=new Set(JSON.parse(localStorage.getItem('visited')||'[]'));
+function saveVisited(){localStorage.setItem('visited',JSON.stringify([...visited]));updateProgress()}
+function updateProgress(){
+  const pct=Math.round(visited.size/POINTS.length*100);
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('progress-label').textContent=visited.size+' / '+POINTS.length;
 }
 
 // ── BUILD ROUTE ───────────────────────────────────────────────────────────────
+function buildRoute(){
+  const list=document.getElementById('route-list');
+  const trMap={};
+  TRANSITIONS.forEach(t=>trMap[String(t.after)]=t);
 
-function buildRoute() {
-  const list = document.getElementById('route-list');
-  const trMap = {};
-  TRANSITIONS.forEach(t => trMap[t.after] = t);
+  POINTS.forEach((pt,idx)=>{
+    // Point card
+    const card=document.createElement('div');
+    card.className=`point-card type-${pt.type} fade-up`;
+    card.id=`point-${pt.id}`;
 
-  POINTS.forEach((pt, idx) => {
-    const isVisited = visited.has(String(pt.id));
-    const card = document.createElement('div');
-    card.className = `point-card type-${pt.type} fade-up${isVisited ? ' point-visited' : ''}`;
-    card.id = `point-${pt.id}`;
+    const photoHtml=pt.photo?`<img class="point-photo" src="${pt.photo}" loading="lazy" onerror="this.style.display='none'" alt=""><div class="point-photo-cap">${pt.photoCap||''}</div>`:'';
+    const playHtml=pt.audio?`<button class="point-play-btn" data-id="${pt.id}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>`:'';
+    const soonHtml=pt.soon?`<div class="soon-badge"><strong>Следующий маршрут</strong>${pt.soon.title} — ${pt.soon.text}</div>`:'';
 
-    const photoHtml = pt.photo
-      ? `<img class="point-photo" src="${pt.photo}" loading="lazy" alt="${pt.name}">
-         <div class="point-photo-cap">${pt.photoCap||''}</div>`
-      : '';
-
-    card.innerHTML = `
+    card.innerHTML=`
       <div class="point-header">
         <span class="point-num">${String(idx+1).padStart(2,'0')}</span>
         <div class="point-icon">${typeIcon(pt.type)}</div>
@@ -711,301 +485,335 @@ function buildRoute() {
           <div class="point-name">${pt.name}</div>
           <div class="point-addr">${pt.addr}</div>
         </div>
-        <div class="visited-check">✓</div>
-        ${pt.audio ? `<button class="point-play-btn" data-id="${pt.id}" title="Слушать">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-        </button>` : ''}
-        <span class="point-chevron">▾</span>
+        ${playHtml}
       </div>
       <div class="point-body">
         ${photoHtml}
         <div class="point-text">${pt.text}</div>
-        ${pt.soon ? `<div class="soon-badge">🗺 ${pt.soon}</div>` : ''}
-      </div>
-    `;
+        ${soonHtml}
+      </div>`;
 
-    card.querySelector('.point-header').addEventListener('click', e => {
-      if (e.target.closest('.point-play-btn')) return;
+    card.querySelector('.point-header').addEventListener('click',e=>{
+      if(e.target.closest('.point-play-btn'))return;
       card.classList.toggle('expanded');
     });
-
-    const playBtn = card.querySelector('.point-play-btn');
-    if (playBtn) playBtn.addEventListener('click', e => { e.stopPropagation(); playPoint(pt.id); });
-
+    const pb=card.querySelector('.point-play-btn');
+    if(pb)pb.addEventListener('click',e=>{e.stopPropagation();playItem('point',pt.id);});
     list.appendChild(card);
 
-    if (trMap[pt.id]) {
-      const t = trMap[pt.id];
-      const tr = document.createElement('div');
-      tr.className = 'transit-card fade-up';
-      tr.innerHTML = `
-        <div class="transit-line"><div class="tdot"></div><div class="tvline"></div><div class="tdot"></div></div>
-        <div class="transit-content">
-          <div class="transit-title">
-            ${t.title} · ${t.sub}
-            ${t.audio ? `<button class="tr-play-btn" data-audio="${t.audio}" data-title="${t.title}" style="background:none;border:none;cursor:pointer;color:#555;vertical-align:middle;padding:0 0 0 8px;display:inline-flex;align-items:center;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-            </button>` : ''}
+    // Transition card
+    const tr=trMap[String(pt.id)];
+    if(tr){
+      const tcard=document.createElement('div');
+      tcard.className='transit-card fade-up';
+      tcard.id=`transit-${pt.id}`;
+      const tplayHtml=tr.audio?`<button class="transit-play-btn" data-audio="${tr.audio}" data-title="${tr.title}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>`:'';
+      tcard.innerHTML=`
+        <div class="transit-header">
+          <div class="transit-dot-icon"><span></span></div>
+          <div class="transit-meta">
+            <div class="transit-name">${tr.title}</div>
+            <div class="transit-sub">${tr.sub}</div>
           </div>
-          <div class="transit-text">${t.text}</div>
+          ${tplayHtml}
+        </div>
+        <div class="transit-body">
+          <div class="transit-text">${tr.text}</div>
+          <div class="ambient-wrap">
+            <button class="ambient-btn" data-tr="${pt.id}">♩ Атмосфера</button>
+            <canvas class="ambient-canvas" data-tr="${pt.id}" width="200" height="24"></canvas>
+          </div>
         </div>`;
-      if (t.audio) {
-        tr.querySelector('.tr-play-btn').addEventListener('click', e => {
-          e.stopPropagation();
-          playTransit(t.audio, t.title);
-        });
-      }
-      list.appendChild(tr);
+      tcard.querySelector('.transit-header').addEventListener('click',e=>{
+        if(e.target.closest('.transit-play-btn'))return;
+        tcard.classList.toggle('expanded');
+      });
+      const tpb=tcard.querySelector('.transit-play-btn');
+      if(tpb)tpb.addEventListener('click',e=>{e.stopPropagation();playItem('transit',null,tr.audio,tr.title);});
+      const ambBtn=tcard.querySelector('.ambient-btn');
+      ambBtn.addEventListener('click',()=>toggleAmbient(ambBtn,tcard.querySelector('.ambient-canvas')));
+      list.appendChild(tcard);
     }
   });
-
   updateProgress();
 }
 
-// ── BUILD PEOPLE ──────────────────────────────────────────────────────────────
-
-function buildPeople() {
-  const list = document.getElementById('people-list');
-  PEOPLE.forEach(sec => {
-    const title = document.createElement('div');
-    title.className = 'section-title';
-    title.textContent = sec.section;
-    list.appendChild(title);
-    sec.items.forEach(p => {
-      const card = document.createElement('div');
-      card.className = 'person-card fade-up';
-      card.innerHTML = `
-        <div class="person-header">
-          <div><div class="person-name">${p.name}</div><div class="person-dates">${p.dates}</div></div>
-          <span class="person-chev">▾</span>
-        </div>
-        <div class="person-body">
-          <div class="person-bio">${p.bio}</div>
-          ${p.where ? `<div class="person-where">↗ ${p.where}</div>` : ''}
-        </div>`;
-      card.querySelector('.person-header').addEventListener('click', () => card.classList.toggle('expanded'));
+// ── PEOPLE ────────────────────────────────────────────────────────────────────
+function buildPeople(){
+  const list=document.getElementById('people-list');
+  PEOPLE.forEach(sec=>{
+    const t=document.createElement('div');t.className='section-title';t.textContent=sec.section;list.appendChild(t);
+    sec.items.forEach(p=>{
+      const card=document.createElement('div');card.className='person-card fade-up';
+      card.innerHTML=`<div class="person-header"><div><div class="person-name">${p.name}</div><div class="person-dates">${p.dates}</div></div><span class="person-chev">▾</span></div><div class="person-body"><div class="person-bio">${p.bio}</div>${p.where?`<div class="person-where">↗ ${p.where}</div>`:''}</div>`;
+      card.querySelector('.person-header').addEventListener('click',()=>card.classList.toggle('expanded'));
       list.appendChild(card);
     });
   });
 }
 
 // ── MAP ───────────────────────────────────────────────────────────────────────
+let mapInited=false,leafletMap,userMarker,geoWatchId=null,osrmLayer=null,fallbackLayer=null;
 
-let mapInited = false, leafletMap, userMarker;
+function initMap(){
+  if(mapInited)return;
+  mapInited=true;
+  leafletMap=L.map('map',{zoomControl:true,attributionControl:false}).setView([59.937,30.32],13);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(leafletMap);
+  setTimeout(()=>document.getElementById('map-skeleton').classList.add('hidden'),800);
 
-function initMap() {
-  if (mapInited) return;
-  mapInited = true;
-  leafletMap = L.map('map', { zoomControl:true, attributionControl:false }).setView([59.937, 30.32], 13);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom:19 }).addTo(leafletMap);
-  setTimeout(() => document.getElementById('map-skeleton').classList.add('hidden'), 800);
-
-  const colors = { bar:'#c8ff6e', gone:'#888', museum:'#5dcaa5', yard:'#aaa', boiler:'#ff8c42' };
-  POINTS.forEach((pt,idx) => {
-    const c = colors[pt.type] || '#aaa';
-    const icon = L.divIcon({
+  const colors={bar:'#c8ff6e',gone:'#999',museum:'#5dcaa5',yard:'#ccc',boiler:'#ff8c42'};
+  POINTS.forEach((pt,idx)=>{
+    const c=colors[pt.type]||'#aaa';
+    const icon=L.divIcon({
       className:'',
-      html:`<div style="width:28px;height:28px;border-radius:50%;background:${c}1a;border:1.5px solid ${c};display:flex;align-items:center;justify-content:center;font-size:10px;color:${c};font-family:'IBM Plex Mono',monospace;">${idx+1}</div>`,
-      iconSize:[28,28], iconAnchor:[14,14]
+      html:`<div style="width:28px;height:28px;border-radius:50%;background:${c};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#000;font-family:'IBM Plex Mono',monospace;box-shadow:0 0 0 2px rgba(0,0,0,.5);">${idx+1}</div>`,
+      iconSize:[28,28],iconAnchor:[14,14]
     });
-    L.marker([pt.lat, pt.lng], { icon })
-      .addTo(leafletMap)
+    L.marker([pt.lat,pt.lng],{icon}).addTo(leafletMap)
       .bindPopup(`<div class="popup-name">${pt.name}</div><div class="popup-addr">${pt.addr}</div><div class="popup-goto" onclick="goToPoint('${pt.id}')">К тексту →</div>`);
   });
 
-  const coords = POINTS.map(p => [p.lat, p.lng]);
-  let routeLayer = L.polyline(coords, { color:'#c8ff6e', weight:1.5, opacity:0.3, dashArray:'4 7' }).addTo(leafletMap);
-
-  const coordStr = POINTS.map(p => `${p.lng},${p.lat}`).join(';');
-  fetch(`https://router.project-osrm.org/route/v1/foot/${coordStr}?overview=full&geometries=geojson`)
-    .then(r => r.json()).then(d => {
-      if (d.routes?.[0]) {
-        leafletMap.removeLayer(routeLayer);
-        L.geoJSON(d.routes[0].geometry, { style:{ color:'#c8ff6e', weight:2, opacity:0.4 } }).addTo(leafletMap);
-      }
-    }).catch(() => {});
-
-  if (navigator.geolocation) {
-    navigator.geolocation.watchPosition(pos => {
-      const { latitude:lat, longitude:lng } = pos.coords;
-      if (!userMarker) {
-        userMarker = L.marker([lat,lng], { icon: L.divIcon({ className:'', html:`<div style="width:12px;height:12px;border-radius:50%;background:#00ff88;border:2px solid #003322;box-shadow:0 0 8px #00ff8855;"></div>`, iconSize:[12,12], iconAnchor:[6,6] }), zIndexOffset:1000 }).addTo(leafletMap);
-      } else userMarker.setLatLng([lat,lng]);
-      updateDistances(lat, lng);
-    }, null, { enableHighAccuracy:true });
-  }
+  drawRoute();
+  startGPS();
 }
 
-function updateDistances(lat, lng) {
-  POINTS.forEach(pt => {
-    const d = Math.round(haversine(lat, lng, pt.lat, pt.lng));
-    const card = document.getElementById(`point-${pt.id}`);
-    if (!card) return;
-    let el = card.querySelector('.dist-badge');
-    if (!el) { el = document.createElement('div'); el.className='dist-badge'; card.querySelector('.point-meta').appendChild(el); }
-    const txt = d < 150 ? 'Вы здесь' : d < 1000 ? `${d} м` : `${(d/1000).toFixed(1)} км`;
-    el.textContent = txt;
-    if (d < 150 && !visited.has(String(pt.id))) {
-      visited.add(String(pt.id));
-      saveVisited();
-      card.classList.add('point-visited');
-    }
+function drawRoute(){
+  if(!leafletMap)return;
+  const coords=POINTS.map(p=>[p.lat,p.lng]);
+  if(fallbackLayer)leafletMap.removeLayer(fallbackLayer);
+  fallbackLayer=L.polyline(coords,{color:'#c8ff6e',weight:1.5,opacity:0.35,dashArray:'4 7'}).addTo(leafletMap);
+
+  const coordStr=POINTS.map(p=>`${p.lng},${p.lat}`).join(';');
+  fetch(`https://router.project-osrm.org/route/v1/foot/${coordStr}?overview=full&geometries=geojson`)
+    .then(r=>r.json()).then(d=>{
+      if(d.routes?.[0]){
+        if(fallbackLayer)leafletMap.removeLayer(fallbackLayer);
+        if(osrmLayer)leafletMap.removeLayer(osrmLayer);
+        osrmLayer=L.geoJSON(d.routes[0].geometry,{style:{color:'#c8ff6e',weight:2,opacity:0.45}}).addTo(leafletMap);
+      }
+    }).catch(()=>{});
+}
+
+function startGPS(){
+  if(!navigator.geolocation)return;
+  if(geoWatchId!==null)return;
+  geoWatchId=navigator.geolocation.watchPosition(pos=>{
+    const{latitude:lat,longitude:lng}=pos.coords;
+    const dotHtml=`<div style="width:14px;height:14px;border-radius:50%;background:#00ff88;border:2.5px solid #000;box-shadow:0 0 10px #00ff8888;"></div>`;
+    if(!userMarker){
+      userMarker=L.marker([lat,lng],{icon:L.divIcon({className:'',html:dotHtml,iconSize:[14,14],iconAnchor:[7,7]}),zIndexOffset:1000}).addTo(leafletMap);
+    }else userMarker.setLatLng([lat,lng]);
+    updateDistances(lat,lng);
+  },err=>{console.warn('GPS:',err.message)},{enableHighAccuracy:true,timeout:15000});
+}
+
+function updateDistances(lat,lng){
+  POINTS.forEach(pt=>{
+    const d=Math.round(haversine(lat,lng,pt.lat,pt.lng));
+    const card=document.getElementById(`point-${pt.id}`);
+    if(!card)return;
+    let el=card.querySelector('.dist-badge');
+    if(!el){el=document.createElement('div');el.className='dist-badge';card.querySelector('.point-meta').appendChild(el);}
+    el.textContent=d<150?'Вы здесь':d<1000?`${d} м`:`${(d/1000).toFixed(1)} км`;
+    if(d<150&&!visited.has(String(pt.id))){visited.add(String(pt.id));saveVisited();card.classList.add('point-visited');}
   });
 }
 
-function haversine(lat1,lon1,lat2,lon2) {
-  const R=6371000,dl=(lat2-lat1)*Math.PI/180,dl2=(lon2-lon1)*Math.PI/180;
-  const a=Math.sin(dl/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dl2/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
+function haversine(a,b,c,d){const R=6371000,dl=(c-a)*Math.PI/180,dl2=(d-b)*Math.PI/180,x=Math.sin(dl/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dl2/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
 
-function goToPoint(id) {
+function goToPoint(id){
   switchTab('route');
-  setTimeout(() => {
-    const el = document.getElementById(`point-${id}`);
-    if (el) { el.scrollIntoView({ behavior:'smooth', block:'start' }); el.classList.add('expanded'); }
-  }, 120);
+  setTimeout(()=>{const el=document.getElementById(`point-${id}`);if(el){el.scrollIntoView({behavior:'smooth',block:'start'});el.classList.add('expanded');}},120);
 }
 
 // ── AUDIO ─────────────────────────────────────────────────────────────────────
+// playlist is array of {type:'point'|'transit', id, audio, title, addr}
+let audio=null,playlist=[],playIdx=0,isPlaying=false,isPlaylistMode=false;
 
-let audio = null, currentId = null, isPlaylist = false, isPlaying = false;
-
-function playTransit(file, title) {
-  if (audio) { audio.pause(); audio.onended = null; }
-  audio = new Audio(file);
-  currentId = null; isPlaylist = false; isPlaying = true;
-  document.getElementById('pb-name').textContent = title;
-  document.getElementById('pb-sub').textContent = 'Переход';
-  document.getElementById('pb-sub').className = '';
-  document.getElementById('player-bar').classList.add('visible');
-  setPbIcon(false);
-  audio.play().catch(() => {
-    document.getElementById('pb-sub').textContent = 'Файл не найден';
-    document.getElementById('pb-sub').className = 'warn';
+function buildPlaylist(){
+  const arr=[];
+  const trMap={};
+  TRANSITIONS.forEach(t=>trMap[String(t.after)]=t);
+  POINTS.forEach(pt=>{
+    if(pt.audio)arr.push({type:'point',id:pt.id,audio:pt.audio,title:pt.name,addr:pt.addr});
+    const tr=trMap[String(pt.id)];
+    if(tr&&tr.audio)arr.push({type:'transit',id:`tr-${pt.id}`,audio:tr.audio,title:tr.title,addr:tr.sub});
   });
-  audio.onended = () => { isPlaying = false; setPbIcon(true); };
-  audio.onpause = () => { isPlaying = false; setPbIcon(true); };
-  audio.onplay  = () => { isPlaying = true;  setPbIcon(false); };
+  return arr;
 }
 
-function playPoint(id, fromPlaylist) {
-  const pt = POINTS.find(p => String(p.id) === String(id));
-  if (!pt || !pt.audio) return;
-  if (audio) { audio.pause(); audio.onended = null; }
-
-  audio = new Audio(pt.audio);
-  currentId = id; isPlaylist = !!fromPlaylist; isPlaying = true;
-
-  document.getElementById('pb-name').textContent = pt.name;
-  document.getElementById('pb-sub').textContent = pt.addr;
-  document.getElementById('pb-sub').className = '';
+function playItem(type,id,audioFile,title,addr){
+  if(audio){audio.pause();audio.onended=null;}
+  let file,name,sub;
+  if(type==='point'){
+    const pt=POINTS.find(p=>String(p.id)===String(id));
+    if(!pt||!pt.audio)return;
+    file=pt.audio;name=pt.name;sub=pt.addr;
+  }else{
+    file=audioFile;name=title;sub=addr||'Переход';
+  }
+  audio=new Audio(file);
+  isPlaying=true;
+  document.getElementById('pb-name').textContent=name;
+  document.getElementById('pb-sub').textContent=sub||'';
+  document.getElementById('pb-sub').className='';
   document.getElementById('player-bar').classList.add('visible');
   setPbIcon(false);
-  updateInlineBtn(id, true);
+  updateInlineBtns(type,type==='point'?id:audioFile,true);
+  audio.play().catch(()=>{document.getElementById('pb-sub').textContent='Файл не найден';document.getElementById('pb-sub').className='warn';});
+  audio.onended=()=>{isPlaying=false;setPbIcon(true);updateInlineBtns(type,type==='point'?id:audioFile,false);if(isPlaylistMode)advancePlaylist();};
+  audio.onpause=()=>{isPlaying=false;setPbIcon(true);};
+  audio.onplay=()=>{isPlaying=true;setPbIcon(false);};
+}
 
-  audio.play().catch(() => {
-    document.getElementById('pb-sub').textContent = 'Файл не найден';
-    document.getElementById('pb-sub').className = 'warn';
+function advancePlaylist(){
+  playIdx++;
+  if(playIdx<playlist.length){
+    const item=playlist[playIdx];
+    playItem(item.type,item.id,item.audio,item.title,item.addr);
+  }else{
+    isPlaylistMode=false;updateListenAllBtn(false);
+  }
+}
+
+function listenAll(){
+  if(isPlaylistMode&&isPlaying){audio.pause();isPlaylistMode=false;updateListenAllBtn(false);return;}
+  playlist=buildPlaylist();
+  playIdx=0;isPlaylistMode=true;
+  updateListenAllBtn(true);
+  if(playlist.length)playItem(playlist[0].type,playlist[0].id,playlist[0].audio,playlist[0].title,playlist[0].addr);
+}
+
+function playerToggle(){if(!audio)return;isPlaying?audio.pause():audio.play();}
+
+function playerNext(){
+  if(isPlaylistMode){advancePlaylist();return;}
+  // non-playlist: find next point with audio
+  if(!audio)return;
+  const cur=document.getElementById('pb-name').textContent;
+  const pts=POINTS.filter(p=>p.audio);
+  const idx=pts.findIndex(p=>p.name===cur);
+  if(idx>=0&&idx+1<pts.length)playItem('point',pts[idx+1].id);
+}
+
+function setPbIcon(showPlay){
+  document.getElementById('pb-play-icon').style.display=showPlay?'':'none';
+  document.getElementById('pb-pause-icon').style.display=showPlay?'none':'';
+}
+function updateListenAllBtn(playing){
+  document.getElementById('la-play-icon').style.display=playing?'none':'';
+  document.getElementById('la-pause-icon').style.display=playing?'':'none';
+  document.getElementById('la-label').textContent=playing?'Пауза':'Слушать весь маршрут';
+}
+function updateInlineBtns(type,idOrFile,playing){
+  document.querySelectorAll('.point-play-btn').forEach(b=>{
+    const same=String(b.dataset.id)===String(idOrFile);
+    b.classList.toggle('playing',same&&playing);
+    b.innerHTML=same&&playing?`<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`:`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
+  });
+  document.querySelectorAll('.transit-play-btn').forEach(b=>{
+    const same=b.dataset.audio===idOrFile;
+    b.classList.toggle('playing',same&&playing);
+    b.innerHTML=same&&playing?`<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`:`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
+  });
+}
+
+// ── AMBIENT GENERATOR ─────────────────────────────────────────────────────────
+let ambientCtx=null,ambientNodes={},ambientActive=null;
+function getAudioCtx(){if(!ambientCtx)ambientCtx=new(window.AudioContext||window.webkitAudioContext)();return ambientCtx;}
+
+function toggleAmbient(btn,canvas){
+  const key=btn.dataset.tr;
+  if(ambientActive===key){
+    stopAmbient();btn.classList.remove('playing');btn.textContent='♩ Атмосфера';ambientActive=null;return;
+  }
+  stopAmbient();
+  ambientActive=key;
+  btn.classList.add('playing');btn.textContent='◼ Стоп';
+  startAmbient(key,canvas);
+}
+
+function stopAmbient(){
+  if(ambientNodes.osc){try{ambientNodes.osc.forEach(o=>o.stop());}catch(e){}}
+  if(ambientNodes.gain){try{ambientNodes.gain.gain.setTargetAtTime(0,getAudioCtx().currentTime,.5);}catch(e){}}
+  ambientNodes={};
+}
+
+function startAmbient(key,canvas){
+  const ctx=getAudioCtx();
+  const master=ctx.createGain();master.gain.setValueAtTime(0,ctx.currentTime);master.gain.linearRampToValueAtTime(.18,ctx.currentTime+2);
+  master.connect(ctx.destination);
+  ambientNodes.gain=master;
+
+  // Drone notes — pentatonic minor feel
+  const freqs=[[55,110,165],[65,130,195],[49,98,147],[58,116,174],[52,104,156],[61,122,183],[54,108,162]][parseInt(key)||0];
+  const oscs=[];
+  freqs.forEach((f,i)=>{
+    const o=ctx.createOscillator();
+    const g=ctx.createGain();
+    o.type=i===0?'sine':i===1?'triangle':'sine';
+    o.frequency.setValueAtTime(f,ctx.currentTime);
+    o.frequency.linearRampToValueAtTime(f*(1+.003*Math.sin(i)),ctx.currentTime+8);
+    g.gain.setValueAtTime(i===0?.12:.05,ctx.currentTime);
+    o.connect(g);g.connect(master);o.start();oscs.push(o);
   });
 
-  audio.onended = () => {
-    isPlaying = false; setPbIcon(true); updateInlineBtn(id, false);
-    if (isPlaylist) {
-      const idx = POINTS.findIndex(p => String(p.id) === String(id));
-      const next = POINTS.slice(idx+1).find(p => p.audio);
-      if (next) playPoint(next.id, true);
-      else { isPlaylist = false; updateListenAllBtn(false); }
+  // Rain noise
+  const buf=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);
+  const data=buf.getChannelData(0);
+  for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.015;
+  const src=ctx.createBufferSource();src.buffer=buf;src.loop=true;
+  const filt=ctx.createBiquadFilter();filt.type='bandpass';filt.frequency.value=800;filt.Q.value=.5;
+  src.connect(filt);filt.connect(master);src.start();
+  oscs.push(src);
+  ambientNodes.osc=oscs;
+
+  // Visualizer
+  const analyser=ctx.createAnalyser();analyser.fftSize=64;master.connect(analyser);
+  const bufLen=analyser.frequencyBinCount;const dataArr=new Uint8Array(bufLen);
+  const cctx=canvas.getContext('2d');
+  function draw(){
+    if(ambientActive===null)return;
+    requestAnimationFrame(draw);
+    analyser.getByteFrequencyData(dataArr);
+    cctx.clearRect(0,0,canvas.width,canvas.height);
+    const w=canvas.width/bufLen;
+    for(let i=0;i<bufLen;i++){
+      const h=(dataArr[i]/255)*canvas.height;
+      cctx.fillStyle=`rgba(200,255,110,${dataArr[i]/512})`;
+      cctx.fillRect(i*w,canvas.height-h,w-1,h);
     }
-  };
-  audio.onpause = () => { isPlaying = false; setPbIcon(true); };
-  audio.onplay  = () => { isPlaying = true;  setPbIcon(false); };
-}
-
-function listenAll() {
-  if (isPlaylist && isPlaying) { audio.pause(); isPlaylist = false; updateListenAllBtn(false); return; }
-  isPlaylist = true; updateListenAllBtn(true);
-  const start = currentId && isPlaying ? currentId : POINTS.find(p=>p.audio).id;
-  playPoint(start, true);
-}
-
-function playerToggle() { if (!audio) return; isPlaying ? audio.pause() : audio.play(); }
-
-function playerNext() {
-  if (!currentId) return;
-  const idx = POINTS.findIndex(p => String(p.id) === String(currentId));
-  const next = POINTS.slice(idx+1).find(p => p.audio);
-  if (next) playPoint(next.id, isPlaylist);
-}
-
-function setPbIcon(showPlay) {
-  document.getElementById('pb-play-icon').style.display = showPlay ? '' : 'none';
-  document.getElementById('pb-pause-icon').style.display = showPlay ? 'none' : '';
-}
-
-function updateListenAllBtn(playing) {
-  document.getElementById('la-play-icon').style.display = playing ? 'none' : '';
-  document.getElementById('la-pause-icon').style.display = playing ? '' : 'none';
-  document.getElementById('la-label').textContent = playing ? 'Пауза' : 'Слушать весь маршрут';
-}
-
-function updateInlineBtn(id, playing) {
-  document.querySelectorAll('.point-play-btn').forEach(b => {
-    const same = String(b.dataset.id) === String(id);
-    b.classList.toggle('playing', same && playing);
-    b.innerHTML = same && playing
-      ? `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`
-      : `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
-  });
+  }
+  draw();
 }
 
 // ── NAV ───────────────────────────────────────────────────────────────────────
-
-function switchTab(name) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === `tab-${name}`));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.nav === name));
-  if (name === 'map') setTimeout(initMap, 50);
-  setTimeout(observeFadeUps, 60);
+function switchTab(name){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===`tab-${name}`));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));
+  if(name==='map'){
+    setTimeout(()=>{
+      initMap();
+      if(leafletMap){
+        leafletMap.invalidateSize();
+        // re-add route if layers gone
+        if(!osrmLayer&&!fallbackLayer)drawRoute();
+        // restart GPS dot
+        if(userMarker&&leafletMap)leafletMap.addLayer(userMarker);
+      }
+    },80);
+  }
+  setTimeout(observeFadeUps,60);
 }
-document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.nav)));
+document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.nav)));
 
 // ── FADE UP ───────────────────────────────────────────────────────────────────
-
-const io = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
-}, { threshold:0.04 });
-
-function observeFadeUps() {
-  document.querySelectorAll('.fade-up:not(.visible)').forEach(el => io.observe(el));
-}
-
-// ── SERVICE WORKER ────────────────────────────────────────────────────────────
-
-if ('serviceWorker' in navigator) {
-  const swCode = `
-const CACHE = 'underground-v1';
-const ASSETS = [
-  './',
-  './index.html',
-  ${POINTS.filter(p=>p.audio).map(p=>`'${p.audio}'`).join(',\n  ')},
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-  'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=Golos+Text:wght@400;500;600&display=swap'
-];
-self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())));
-self.addEventListener('activate', e => e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))));
-self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).then(res => { if(res.ok){ const c=res.clone(); caches.open(CACHE).then(cache=>cache.put(e.request,c)); } return res; }).catch(()=>r))));
-  `;
-  const blob = new Blob([swCode], { type:'application/javascript' });
-  const swUrl = URL.createObjectURL(blob);
-  navigator.serviceWorker.register(swUrl).catch(() => {});
-}
+const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target);}});},{threshold:.04});
+function observeFadeUps(){document.querySelectorAll('.fade-up:not(.visible)').forEach(el=>io.observe(el));}
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-
-buildRoute();
-buildPeople();
-observeFadeUps();
+buildRoute();buildPeople();observeFadeUps();
 </script>
 </body>
 </html>
