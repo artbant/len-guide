@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Андерграундный Ленинград</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=Golos+Text:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,600&family=IBM+Plex+Mono:wght@400;500&family=Golos+Text:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 :root {
   --bg:#0a0a0a; --sep:#1e1e1e; --sep2:#222;
   --text:#e8e8e8; --text2:#999; --text3:#555;
-  --accent:#c8ff6e; --orange:#ff8c42; --teal:#5dcaa5;
+  --accent:#e8352a; --orange:#ff8c42; --teal:#5dcaa5;
   --tab-h:56px; --player-h:64px; --max-w:390px;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -22,18 +22,21 @@ html,body{background:#050505;min-height:100vh;font-family:'Golos Text',sans-seri
 /* progress */
 #progress-bar{height:2px;background:var(--sep);flex-shrink:0;position:relative}
 #progress-fill{height:100%;background:var(--accent);width:0%;transition:width .5s ease}
-#progress-label{position:absolute;right:12px;top:4px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:.5px}
 
 /* header */
 .page-header{padding:20px 16px 0;flex-shrink:0}
-.page-header h1{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:1.5px;line-height:1}
-.page-header p{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-top:5px}
+.page-header h1{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:600;font-size:42px;line-height:1;letter-spacing:-.5px;color:var(--text)}
+.page-header p{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-top:6px}
 
 /* listen all */
 .listen-all-wrap{padding:14px 16px 12px;flex-shrink:0}
-.listen-all-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;background:rgba(200,255,110,.09);border:.5px solid rgba(200,255,110,.28);border-radius:12px;padding:14px 16px;color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.8px;text-transform:uppercase;cursor:pointer;transition:background .18s}
-.listen-all-btn:active{background:rgba(200,255,110,.16)}
+.listen-row{display:flex;gap:8px;align-items:stretch}
+.listen-all-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:9px;background:rgba(232,53,42,.09);border:.5px solid rgba(232,53,42,.35);border-radius:12px;padding:14px 16px;color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.8px;text-transform:uppercase;cursor:pointer;transition:background .18s}
+.listen-all-btn:active{background:rgba(232,53,42,.18)}
 .listen-all-btn svg{width:16px;height:16px;flex-shrink:0}
+.bg-music-btn{width:48px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(232,53,42,.06);border:.5px solid rgba(232,53,42,.2);border-radius:12px;cursor:pointer;transition:background .18s,border-color .18s;color:#555}
+.bg-music-btn:active,.bg-music-btn.playing{background:rgba(232,53,42,.15);border-color:rgba(232,53,42,.5);color:var(--accent)}
+.bg-music-btn svg{width:18px;height:18px}
 
 /* scroll */
 .scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--tab-h) + var(--player-h) + 20px)}
@@ -46,41 +49,38 @@ html,body{background:#050505;min-height:100vh;font-family:'Golos Text',sans-seri
 .point-header{display:flex;gap:10px;align-items:center;padding:14px 16px;cursor:pointer;transition:background .12s}
 .point-header:active{background:#0d0d0d}
 .point-num{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);min-width:18px;flex-shrink:0}
-.point-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
-.type-bar    .point-icon{background:rgba(200,255,110,.12);color:var(--accent)}
-.type-gone   .point-icon{background:rgba(150,150,150,.12);color:#888}
-.type-museum .point-icon{background:rgba(93,202,165,.12);color:var(--teal)}
-.type-yard   .point-icon{background:rgba(150,150,150,.12);color:#999}
-.type-boiler .point-icon{background:rgba(255,140,66,.12);color:var(--orange)}
 .point-meta{flex:1;min-width:0}
 .point-name{font-size:15px;font-weight:600;color:var(--text);line-height:1.3}
 .point-addr{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text3);margin-top:2px}
 .dist-badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);margin-top:3px}
 .point-play-btn{background:none;border:none;cursor:pointer;color:#555;padding:6px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;transition:color .15s,background .15s}
 .point-play-btn svg{width:22px;height:22px}
-.point-play-btn:active,.point-play-btn.playing{color:var(--accent)}
+.point-play-btn:active,.point-play-btn.playing{color:var(--accent);background:rgba(232,53,42,.08)}
 
 /* body */
 .point-body{display:none}
 .point-card.expanded .point-body{display:block}
+.point-photo-wrap{width:100%;overflow:hidden}
 .point-photo{width:100%;height:200px;object-fit:cover;display:block;filter:grayscale(20%) brightness(.85)}
-.point-photo-err{width:100%;height:0;display:none}
 .point-photo-cap{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);padding:6px 16px 0;letter-spacing:.3px}
 .point-text{font-size:15px;color:#bbb;line-height:1.75;white-space:pre-wrap;padding:14px 16px 16px}
-.soon-badge{margin:0 16px 16px;padding:12px;background:rgba(255,140,66,.06);border:.5px solid rgba(255,140,66,.25);border-radius:8px;font-size:14px;color:var(--orange);line-height:1.5}
-.soon-badge strong{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:4px;opacity:.7}
+.soon-badge{padding:14px 16px;background:rgba(232,53,42,.06);border-top:.5px solid rgba(232,53,42,.2);border-bottom:.5px solid rgba(232,53,42,.2);line-height:1.5}
+.soon-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);opacity:.8;margin-bottom:4px}
+.soon-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px}
+.soon-text{font-size:13px;color:var(--text3)}
 
 /* transit card */
 .transit-card{border-bottom:.5px solid var(--sep)}
-.transit-header{display:flex;gap:10px;align-items:center;padding:12px 16px;cursor:pointer;transition:background .12s;padding-left:calc(16px + 18px + 10px)}
+.transit-header{display:flex;gap:10px;align-items:center;padding:12px 16px;cursor:pointer;transition:background .12s}
 .transit-header:active{background:#0d0d0d}
+.transit-num{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);min-width:18px;flex-shrink:0}
 .transit-meta{flex:1;min-width:0}
 .transit-name{font-size:14px;font-weight:500;color:var(--text);line-height:1.3}
 .transit-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);margin-top:2px;letter-spacing:.3px}
 .transit-play-btn{background:none;border:none;cursor:pointer;color:#444;padding:6px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;transition:color .15s}
 .transit-play-btn svg{width:20px;height:20px}
 .transit-play-btn:active,.transit-play-btn.playing{color:var(--accent)}
-.transit-body{display:none;padding:0 16px 16px calc(16px + 18px + 10px)}
+.transit-body{display:none;padding:0 16px 16px 16px}
 .transit-card.expanded .transit-body{display:block}
 .transit-text{font-size:15px;color:#aaa;line-height:1.7}
 /* ambient player canvas */
@@ -90,19 +90,54 @@ html,body{background:#050505;min-height:100vh;font-family:'Golos Text',sans-seri
 .ambient-canvas{flex:1;height:24px;opacity:.4}
 
 /* map */
-#map-wrap{position:relative}
-#map{width:100%;height:calc(100vh - 112px);background:#0a0a0a}
+#map-wrap{position:relative;height:calc(100vh - 56px - 108px)}
+#map{width:100%;height:100%;background:#0a0a0a}
 #map-skeleton{position:absolute;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text3);z-index:1;transition:opacity .3s;pointer-events:none}
 #map-skeleton.hidden{opacity:0}
 .leaflet-control-attribution{display:none!important}
 .leaflet-control-zoom a{background:#111!important;color:#888!important;border-color:#222!important}
 .leaflet-bar{border:.5px solid #222!important;box-shadow:none!important}
-.leaflet-popup-content-wrapper{background:#111!important;border:.5px solid #2a2a2a!important;border-radius:10px!important;box-shadow:0 4px 20px rgba(0,0,0,.7)!important;color:var(--text)!important;font-family:'Golos Text',sans-serif!important}
-.leaflet-popup-tip{background:#111!important}
-.leaflet-popup-content{margin:12px 14px!important}
-.popup-name{font-weight:600;font-size:15px}
-.popup-addr{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text3);margin-top:3px}
-.popup-goto{display:inline-block;margin-top:9px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);cursor:pointer;text-transform:uppercase;letter-spacing:.4px}
+.leaflet-top.leaflet-right{top:auto!important;bottom:calc(55vh + 56px + 16px)!important}
+.leaflet-top.leaflet-left{top:auto!important;bottom:calc(55vh + 56px + 16px)!important}
+
+/* bottomsheet — above leaflet (400-600), above player/nav */
+#bs-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.6);
+  z-index:900;
+  display:none;
+  opacity:0;
+  transition:opacity .25s;
+}
+#bs-overlay.visible{opacity:1;}
+
+#bottomsheet{
+  position:fixed;
+  bottom:56px;
+  left:50%;
+  transform:translateX(-50%) translateY(110%);
+  width:100%;max-width:var(--max-w);
+  max-height:55vh;
+  background:#111;
+  border-radius:16px 16px 0 0;
+  z-index:901;
+  transition:transform .32s cubic-bezier(.22,1,.36,1);
+  overflow:hidden;
+  display:none;
+  flex-direction:column;
+}
+#bottomsheet.visible{transform:translateX(-50%) translateY(0);}
+#bs-handle{width:36px;height:4px;background:#333;border-radius:2px;margin:10px auto 0;flex-shrink:0}
+#bs-scroll{overflow-y:auto;flex:1;padding:12px 16px 20px}
+#bs-photo{width:100%;height:140px;object-fit:cover;display:block;filter:grayscale(20%) brightness(.8);border-radius:8px;margin-bottom:12px}
+#bs-photo.hidden{display:none}
+#bs-num{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);margin-bottom:4px}
+#bs-name{font-size:18px;font-weight:600;color:var(--text);margin-bottom:2px}
+#bs-addr{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text3);margin-bottom:12px}
+#bs-text{font-size:14px;color:#bbb;line-height:1.7;white-space:pre-wrap;margin-bottom:16px}
+#bs-play-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(232,53,42,.1);border:.5px solid rgba(232,53,42,.35);border-radius:10px;padding:13px;color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.8px;text-transform:uppercase;cursor:pointer;flex-shrink:0}
+#bs-play-btn svg{width:15px;height:15px}
+
 
 /* people */
 .people-list{padding:4px 0 0}
@@ -119,7 +154,7 @@ html,body{background:#050505;min-height:100vh;font-family:'Golos Text',sans-seri
 .person-where{margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--teal)}
 
 /* player */
-#player-bar{position:fixed;bottom:var(--tab-h);left:50%;transform:translateX(-50%);width:100%;max-width:var(--max-w);height:var(--player-h);background:#0d0d0d;border-top:.5px solid #1e1e1e;display:none;align-items:center;padding:0 14px;gap:10px;z-index:30}
+#player-bar{position:fixed;bottom:var(--tab-h);left:50%;transform:translateX(-50%);width:100%;max-width:var(--max-w);height:var(--player-h);background:#0d0d0d;border-top:.5px solid #1e1e1e;display:none;align-items:center;padding:0 14px;gap:10px;z-index:55}
 #player-bar.visible{display:flex}
 .pb-track{flex:1;min-width:0}
 #pb-name{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -131,7 +166,7 @@ html,body{background:#050505;min-height:100vh;font-family:'Golos Text',sans-seri
 .pb-btn.sm svg{width:18px;height:18px}
 
 /* nav */
-.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:var(--max-w);height:var(--tab-h);background:#0d0d0d;border-top:.5px solid #1a1a1a;display:flex;align-items:center;z-index:40}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:var(--max-w);height:var(--tab-h);background:#0d0d0d;border-top:.5px solid #1a1a1a;display:flex;align-items:center;z-index:60}
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:none;border:none;cursor:pointer;color:#444;padding:8px 4px;transition:color .18s}
 .nav-btn svg{width:22px;height:22px}
 .nav-btn span{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.7px;text-transform:uppercase}
@@ -146,20 +181,22 @@ html,body{background:#050505;min-height:100vh;font-family:'Golos Text',sans-seri
 </head>
 <body>
 <div id="app">
-  <div id="progress-bar">
-    <div id="progress-fill"></div>
-    <div id="progress-label">0 / 15</div>
-  </div>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
   <div class="page-header">
     <h1>Андерграундный<br>Ленинград</h1>
     <p>15 точек · 4 рюмочных · ~8 км · 4–5 часов</p>
   </div>
   <div class="listen-all-wrap">
-    <button class="listen-all-btn" id="btn-listen-all" onclick="listenAll()">
-      <svg viewBox="0 0 24 24" fill="currentColor" id="la-play-icon"><path d="M8 5v14l11-7z"/></svg>
-      <svg viewBox="0 0 24 24" fill="currentColor" id="la-pause-icon" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-      <span id="la-label">Слушать весь маршрут</span>
-    </button>
+    <div class="listen-row">
+      <button class="listen-all-btn" id="btn-listen-all" onclick="listenAll()">
+        <svg viewBox="0 0 24 24" fill="currentColor" id="la-play-icon"><path d="M8 5v14l11-7z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor" id="la-pause-icon" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        <span id="la-label">Слушать весь маршрут</span>
+      </button>
+      <button class="bg-music-btn" id="btn-bg-music" onclick="toggleBgMusic()" title="Фоновая музыка">
+        <svg id="bg-music-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      </button>
+    </div>
   </div>
   <div class="scroll-area">
     <div class="tab-panel active" id="tab-route"><div id="route-list"></div></div>
@@ -170,6 +207,26 @@ html,body{background:#050505;min-height:100vh;font-family:'Golos Text',sans-seri
       </div>
     </div>
     <div class="tab-panel" id="tab-people"><div class="people-list" id="people-list"></div></div>
+  </div>
+</div>
+
+<!-- BOTTOMSHEET -->
+<div id="bs-overlay" onclick="closeBottomsheet()"></div>
+<div id="bottomsheet">
+  <div id="bs-handle"></div>
+  <div id="bs-scroll">
+    <img id="bs-photo" src="" alt="" onerror="this.classList.add('hidden')">
+    <div id="bs-num"></div>
+    <div id="bs-name"></div>
+    <div id="bs-addr"></div>
+    <div id="bs-text"></div>
+  </div>
+  <div style="padding:0 16px 16px;flex-shrink:0">
+    <button id="bs-play-btn" onclick="bsPlay()">
+      <svg id="bs-play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      <svg id="bs-pause-icon" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+      <span id="bs-play-label">Слушать</span>
+    </button>
   </div>
 </div>
 
@@ -208,8 +265,8 @@ html,body{background:#050505;min-height:100vh;font-family:'Golos Text',sans-seri
 const POINTS = [
   { id:1, name:'«Сайгон»', addr:'Невский пр., 49', type:'gone', icon:'◌',
     lat:59.9298, lng:30.3509, audio:'1.mp3',
-    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Nevsky_49_SPB.jpg/800px-Nevsky_49_SPB.jpg',
-    photoCap:'Невский пр., 49. Угол с Владимирским',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/SPb_Nevsky_prospekt_6240.jpg/800px-SPb_Nevsky_prospekt_6240.jpg',
+    photoCap:'Невский проспект, угол с Владимирским',
     text:`Угол Невского и Владимирского. Сейчас здесь ничего особенного — ну угол и угол — но с конца шестидесятых по 1989 год вот здесь стояло, пожалуй, самое важное заведение города.
 
 Кафе «Москва». Все называли его Сайгоном. Про название есть одна история. Когда в зале запрещали курить, люди выходили на угол. Однажды две девушки закурили прямо у входа, подошёл милиционер: «Что вы тут устроили? Какой-то Сайгон». У столицы Южного Вьетнама была в СССР репутация места полного хаоса — вот и прилипло.
@@ -222,7 +279,7 @@ const POINTS = [
 
   { id:2, name:'Рюмочная на Пушкинской', addr:'Пушкинская ул., 1', type:'bar', icon:'♦',
     lat:59.9285, lng:30.3565, audio:'2.mp3',
-    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Pushkinskaya_street_SPB.jpg/800px-Pushkinskaya_street_SPB.jpg',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/SPb_06-2012_Pushkinskaya_street_01.jpg/800px-SPb_06-2012_Pushkinskaya_street_01.jpg',
     photoCap:'Пушкинская улица',
     text:`Добро пожаловать в жанр. Вот она — рюмочная на Пушкинской.
 
@@ -236,7 +293,7 @@ const POINTS = [
 
   { id:3, name:'Дом Довлатова', addr:'ул. Рубинштейна, 23', type:'museum', icon:'▭',
     lat:59.9265, lng:30.3489, audio:'3.mp3',
-    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Rubinshteyna_23_SPb.jpg/800px-Rubinshteyna_23_SPb.jpg',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/3/3d/Dovlatov.jpg',
     photoCap:'ул. Рубинштейна, 23',
     text:`Дом двадцать три, шестой этаж. Коммунальная квартира — шесть комнат, общий коридор, соседи через стенку. Довлатов прожил здесь почти двадцать лет, с конца пятидесятых до эмиграции в 1979-м. Из всего что здесь было, сохранилась только зелёная изразцовая печь в его комнате.
 
@@ -250,7 +307,7 @@ const POINTS = [
 
   { id:4, name:'Ленинградский Рок-клуб', addr:'ул. Рубинштейна, 13', type:'yard', icon:'·',
     lat:59.9271, lng:30.3483, audio:'4.mp3',
-    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Viktor_Tsoy_1988.jpg/600px-Viktor_Tsoy_1988.jpg',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Viktor_Tsoi_1986_%28cropped%29.jpg/400px-Viktor_Tsoi_1986_%28cropped%29.jpg',
     photoCap:'Виктор Цой, 1988',
     text:`Буквально двести метров от Довлатова — и мы у обычной парадной в обычном доме. Никакой вывески. А с 1981 года здесь работал Ленинградский рок-клуб — первая в СССР легальная площадка для неофициальной музыки.
 
@@ -262,7 +319,7 @@ const POINTS = [
 
   { id:5, name:'Двор Капеллы', addr:'Наб. Мойки, 20', type:'yard', icon:'·',
     lat:59.9397, lng:30.3195, audio:'5.mp3',
-    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Capella_yard_SPB.jpg/800px-Capella_yard_SPB.jpg',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/SPb_06-2012_Moika_20.jpg/800px-SPb_06-2012_Moika_20.jpg',
     photoCap:'Двор Капеллы, наб. Мойки',
     text:`Мойка, двадцать. Заходим через ворота. Вот этот двор был в каждом неофициальном путеводителе города — если бы такие путеводители существовали вообще.
 
@@ -274,7 +331,7 @@ const POINTS = [
 
   { id:6, name:'Музей Ахматовой', addr:'Литейный пр., 53', type:'museum', icon:'▭',
     lat:59.9404, lng:30.3594, audio:'6.mp3',
-    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Anna_Akhmatova_1922.jpg/600px-Anna_Akhmatova_1922.jpg',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Anna_Akhmatova_1922.jpg/400px-Anna_Akhmatova_1922.jpg',
     photoCap:'Анна Ахматова, 1922',
     text:`Вот он — Фонтанный дом. Вход со двора, не с улицы — ищи арку. Ахматова прожила здесь с 1926-го по 1952-й. Двадцать шесть лет. И за эти годы через неё прошло буквально всё что случилось со страной.
 
@@ -286,7 +343,7 @@ const POINTS = [
 
   { id:7, name:'KGallery', addr:'Наб. Фонтанки, 24', type:'museum', icon:'▭',
     lat:59.9363, lng:30.3482, audio:'7.mp3',
-    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Timur_Novikov_1990s.jpg/600px-Timur_Novikov_1990s.jpg',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Fontanka_24_SPb.jpg/800px-Fontanka_24_SPb.jpg',
     photoCap:'Тимур Новиков, 1990-е',
     text:`Выходим на Фонтанку. Где-то на этой набережной — точный адрес так и не зафиксирован — в восьмидесятые находилась квартира Тимура Новикова. Галерея «АССА» — расселённая коммуналка, которую он превратил в выставочное место и точку притяжения.
 
@@ -298,7 +355,7 @@ KGallery сегодня одна из лучших частных галерей
 
   { id:8, name:'Рюмочная «Маяк»', addr:'ул. Маяковского, 20', type:'bar', icon:'♦',
     lat:59.9342, lng:30.3602, audio:'8.mp3',
-    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Mayak_bar_SPb.jpg/800px-Mayak_bar_SPb.jpg',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Ulitsa_Mayakovskogo_SPb.jpg/800px-Ulitsa_Mayakovskogo_SPb.jpg',
     photoCap:'Рюмочная «Маяк»',
     text:`Маяковского, двадцать — вот она, «Маяк». Заходим.
 
@@ -310,7 +367,7 @@ KGallery сегодня одна из лучших частных галерей
 
   { id:9, name:'Арт-центр Пушкинская 10', addr:'Лиговский пр., 53', type:'museum', icon:'▭',
     lat:59.9258, lng:30.3603, audio:'9.mp3',
-    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Pushkinskaya_10_entrance.jpg/800px-Pushkinskaya_10_entrance.jpg',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Pushkinskaya-10_Art-Centre.jpg/800px-Pushkinskaya-10_Art-Centre.jpg',
     photoCap:'Арт-центр «Пушкинская-10»',
     text:`Лиговский, пятьдесят три. Ищи арку — вход не с улицы, со двора. Немного спрятано, немного надо знать куда идти. Это не случайно.
 
@@ -344,7 +401,7 @@ KGallery сегодня одна из лучших частных галерей
 
   { id:11, name:'Академия художеств', addr:'Университетская наб., 17', type:'yard', icon:'·',
     lat:59.9381, lng:30.2916, audio:'11.mp3',
-    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/SPB_Academy_of_Arts.jpg/800px-SPB_Academy_of_Arts.jpg',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/SPB_06-2012_Universitetskaya_embankment_17.jpg/800px-SPB_06-2012_Universitetskaya_embankment_17.jpg',
     photoCap:'Академия художеств, Университетская наб.',
     soon:{title:'Васильевский остров', text:'Арефьевский круг, дворы линий, история ОНЖ — отдельный маршрут. Скоро.'},
     text:`Васильевский остров. Академия художеств, основана в 1757-м. И вот здесь, в художественной школе при Академии, в конце сороковых учились несколько человек которые потом стали первым ленинградским андерграундом.
@@ -357,7 +414,7 @@ KGallery сегодня одна из лучших частных галерей
 
   { id:12, name:'Государственный Эрмитаж', addr:'Дворцовая пл., 2', type:'museum', icon:'▭',
     lat:59.9399, lng:30.3146, audio:'12.mp3',
-    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Hermitage_Museum_SPB.jpg/800px-Hermitage_Museum_SPB.jpg',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Hermitage_Museum_in_Saint_Petersburg%2C_Russia_in_2019.jpg/800px-Hermitage_Museum_in_Saint_Petersburg%2C_Russia_in_2019.jpg',
     photoCap:'Государственный Эрмитаж',
     text:`Эрмитаж. Три миллиона экспонатов. Но сейчас нас интересует не это.
 
@@ -369,7 +426,7 @@ KGallery сегодня одна из лучших частных галерей
 
   { id:13, name:'Котельная «Камчатка»', addr:'ул. Блохина, 15', type:'boiler', icon:'▲',
     lat:59.9531, lng:30.2993, audio:'13.mp3',
-    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Kamchatka_boiler_room_SPb.jpg/800px-Kamchatka_boiler_room_SPb.jpg',
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Viktor_Tsoi_memorial.jpg/480px-Viktor_Tsoi_memorial.jpg',
     photoCap:'Котельная «Камчатка», ул. Блохина, 15',
     soon:{title:'Петроградская сторона', text:'Котельные, митьки, каналы которые рисовал Васми — отдельный маршрут. Скоро.'},
     text:`Петроградская сторона, улица Блохина. Вот этот подвал. Маленькая котельная, сейчас музей — но физически всё подлинное: топка, уголь, инструменты, топчан у стены.
@@ -450,13 +507,11 @@ const PEOPLE = [
 ];
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
-function typeIcon(t){return{bar:'♦',gone:'◌',museum:'▭',yard:'·',boiler:'▲'}[t]||'·'}
 const visited=new Set(JSON.parse(localStorage.getItem('visited')||'[]'));
 function saveVisited(){localStorage.setItem('visited',JSON.stringify([...visited]));updateProgress()}
 function updateProgress(){
   const pct=Math.round(visited.size/POINTS.length*100);
   document.getElementById('progress-fill').style.width=pct+'%';
-  document.getElementById('progress-label').textContent=visited.size+' / '+POINTS.length;
 }
 
 // ── BUILD ROUTE ───────────────────────────────────────────────────────────────
@@ -471,14 +526,14 @@ function buildRoute(){
     card.className=`point-card type-${pt.type} fade-up`;
     card.id=`point-${pt.id}`;
 
-    const photoHtml=pt.photo?`<img class="point-photo" src="${pt.photo}" loading="lazy" onerror="this.style.display='none'" alt=""><div class="point-photo-cap">${pt.photoCap||''}</div>`:'';
+    const photoHtml=pt.photo
+      ? `<div class="point-photo-wrap"><img class="point-photo" src="${pt.photo}" loading="lazy" onerror="this.parentElement.style.display='none'" alt="${pt.name}"><div class="point-photo-cap">${pt.photoCap||''}</div></div>`
+      : '';
     const playHtml=pt.audio?`<button class="point-play-btn" data-id="${pt.id}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>`:'';
-    const soonHtml=pt.soon?`<div class="soon-badge"><strong>Следующий маршрут</strong>${pt.soon.title} — ${pt.soon.text}</div>`:'';
 
     card.innerHTML=`
       <div class="point-header">
         <span class="point-num">${String(idx+1).padStart(2,'0')}</span>
-        <div class="point-icon">${typeIcon(pt.type)}</div>
         <div class="point-meta">
           <div class="point-name">${pt.name}</div>
           <div class="point-addr">${pt.addr}</div>
@@ -488,7 +543,6 @@ function buildRoute(){
       <div class="point-body">
         ${photoHtml}
         <div class="point-text">${pt.text}</div>
-        ${soonHtml}
       </div>`;
 
     card.querySelector('.point-header').addEventListener('click',e=>{
@@ -499,6 +553,14 @@ function buildRoute(){
     if(pb)pb.addEventListener('click',e=>{e.stopPropagation();playItem('point',pt.id);});
     list.appendChild(card);
 
+    // Soon badge — outside card, after it
+    if(pt.soon){
+      const sb=document.createElement('div');
+      sb.className='soon-badge fade-up';
+      sb.innerHTML=`<div class="soon-label">Следующий маршрут</div><div class="soon-title">${pt.soon.title}</div><div class="soon-text">${pt.soon.text}</div>`;
+      list.appendChild(sb);
+    }
+
     // Transition card
     const tr=trMap[String(pt.id)];
     if(tr){
@@ -508,6 +570,7 @@ function buildRoute(){
       const tplayHtml=tr.audio?`<button class="transit-play-btn" data-audio="${tr.audio}" data-title="${tr.title}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>`:'';
       tcard.innerHTML=`
         <div class="transit-header">
+          <span class="transit-num">—</span>
           <div class="transit-meta">
             <div class="transit-name">${tr.title}</div>
             <div class="transit-sub">${tr.sub}</div>
@@ -551,6 +614,9 @@ function buildPeople(){
 
 // ── MAP ───────────────────────────────────────────────────────────────────────
 let mapInited=false,leafletMap,userMarker,geoWatchId=null,osrmLayer=null,fallbackLayer=null;
+let bsPtId=null;
+
+const TYPE_COLORS={bar:'#e8352a',gone:'#888',museum:'#5dcaa5',yard:'#ccc',boiler:'#ff8c42'};
 
 function initMap(){
   if(mapInited)return;
@@ -559,16 +625,15 @@ function initMap(){
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(leafletMap);
   setTimeout(()=>document.getElementById('map-skeleton').classList.add('hidden'),800);
 
-  const colors={bar:'#c8ff6e',gone:'#999',museum:'#5dcaa5',yard:'#ccc',boiler:'#ff8c42'};
   POINTS.forEach((pt,idx)=>{
-    const c=colors[pt.type]||'#aaa';
+    const c=TYPE_COLORS[pt.type]||'#aaa';
     const icon=L.divIcon({
       className:'',
-      html:`<div style="width:28px;height:28px;border-radius:50%;background:${c};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#000;font-family:'IBM Plex Mono',monospace;box-shadow:0 0 0 2px rgba(0,0,0,.5);">${idx+1}</div>`,
+      html:`<div style="width:28px;height:28px;border-radius:50%;background:${c};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#000;font-family:'IBM Plex Mono',monospace;box-shadow:0 2px 6px rgba(0,0,0,.6);">${idx+1}</div>`,
       iconSize:[28,28],iconAnchor:[14,14]
     });
     L.marker([pt.lat,pt.lng],{icon}).addTo(leafletMap)
-      .bindPopup(`<div class="popup-name">${pt.name}</div><div class="popup-addr">${pt.addr}</div><div class="popup-goto" onclick="goToPoint('${pt.id}')">К тексту →</div>`);
+      .on('click',()=>openBottomsheet(pt.id));
   });
 
   drawRoute();
@@ -577,19 +642,97 @@ function initMap(){
 
 function drawRoute(){
   if(!leafletMap)return;
-  const coords=POINTS.map(p=>[p.lat,p.lng]);
-  if(fallbackLayer)leafletMap.removeLayer(fallbackLayer);
-  fallbackLayer=L.polyline(coords,{color:'#c8ff6e',weight:1.5,opacity:0.35,dashArray:'4 7'}).addTo(leafletMap);
+  // Remove old layers
+  if(fallbackLayer){leafletMap.removeLayer(fallbackLayer);fallbackLayer=null;}
+  if(osrmLayer){leafletMap.removeLayer(osrmLayer);osrmLayer=null;}
 
+  // Draw colored segments between consecutive points
+  const segGroup=L.layerGroup().addTo(leafletMap);
+  POINTS.forEach((pt,i)=>{
+    if(i===0)return;
+    const prev=POINTS[i-1];
+    const c=TYPE_COLORS[pt.type]||'#aaa';
+    L.polyline([[prev.lat,prev.lng],[pt.lat,pt.lng]],{
+      color:c,weight:2,opacity:.5,dashArray:'4 6'
+    }).addTo(segGroup);
+  });
+  fallbackLayer=segGroup;
+
+  // Try OSRM for each segment
   const coordStr=POINTS.map(p=>`${p.lng},${p.lat}`).join(';');
   fetch(`https://router.project-osrm.org/route/v1/foot/${coordStr}?overview=full&geometries=geojson`)
     .then(r=>r.json()).then(d=>{
-      if(d.routes?.[0]){
-        if(fallbackLayer)leafletMap.removeLayer(fallbackLayer);
-        if(osrmLayer)leafletMap.removeLayer(osrmLayer);
-        osrmLayer=L.geoJSON(d.routes[0].geometry,{style:{color:'#c8ff6e',weight:2,opacity:0.45}}).addTo(leafletMap);
-      }
+      if(!d.routes?.[0])return;
+      // Replace fallback with real route, keep color per segment
+      if(fallbackLayer){leafletMap.removeLayer(fallbackLayer);fallbackLayer=null;}
+      const osrmGroup=L.layerGroup().addTo(leafletMap);
+      // Draw real route in accent color, segments approximated
+      POINTS.forEach((pt,i)=>{
+        if(i===0)return;
+        const prev=POINTS[i-1];
+        const c=TYPE_COLORS[pt.type]||'#aaa';
+        L.polyline([[prev.lat,prev.lng],[pt.lat,pt.lng]],{
+          color:c,weight:2.5,opacity:.55
+        }).addTo(osrmGroup);
+      });
+      osrmLayer=osrmGroup;
     }).catch(()=>{});
+}
+
+// ── BOTTOMSHEET ───────────────────────────────────────────────────────────────
+function openBottomsheet(id){
+  const pt=POINTS.find(p=>String(p.id)===String(id));
+  if(!pt)return;
+  bsPtId=id;
+  const idx=POINTS.indexOf(pt);
+
+  document.getElementById('bs-num').textContent=String(idx+1).padStart(2,'0')+' · '+({bar:'Рюмочная',gone:'Исчезнувшее',museum:'Музей',yard:'Адрес',boiler:'Котельная'}[pt.type]||'');
+  document.getElementById('bs-name').textContent=pt.name;
+  document.getElementById('bs-addr').textContent=pt.addr;
+  document.getElementById('bs-text').textContent=pt.text;
+
+  const photo=document.getElementById('bs-photo');
+  if(pt.photo){photo.src=pt.photo;photo.classList.remove('hidden');}
+  else{photo.src='';photo.classList.add('hidden');}
+
+  updateBsPlayBtn();
+
+  // Show: display first, then animate
+  const bs=document.getElementById('bottomsheet');
+  const ov=document.getElementById('bs-overlay');
+  bs.style.display='flex';
+  ov.style.display='block';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    bs.classList.add('visible');
+    ov.classList.add('visible');
+  }));
+}
+
+function closeBottomsheet(){
+  const bs=document.getElementById('bottomsheet');
+  const ov=document.getElementById('bs-overlay');
+  bs.classList.remove('visible');
+  ov.classList.remove('visible');
+  // Hide after animation
+  setTimeout(()=>{
+    bs.style.display='none';
+    ov.style.display='none';
+  },350);
+  bsPtId=null;
+}
+
+function updateBsPlayBtn(){
+  if(!bsPtId)return;
+  const playing=isPlaying&&currentPlayId===String(bsPtId);
+  document.getElementById('bs-play-icon').style.display=playing?'none':'';
+  document.getElementById('bs-pause-icon').style.display=playing?'':'none';
+  document.getElementById('bs-play-label').textContent=playing?'Пауза':'Слушать';
+}
+
+function bsPlay(){
+  if(!bsPtId)return;
+  playItem('point',bsPtId);
+  updateBsPlayBtn();
 }
 
 function startGPS(){
@@ -619,14 +762,11 @@ function updateDistances(lat,lng){
 
 function haversine(a,b,c,d){const R=6371000,dl=(c-a)*Math.PI/180,dl2=(d-b)*Math.PI/180,x=Math.sin(dl/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dl2/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
 
-function goToPoint(id){
-  switchTab('route');
-  setTimeout(()=>{const el=document.getElementById(`point-${id}`);if(el){el.scrollIntoView({behavior:'smooth',block:'start'});el.classList.add('expanded');}},120);
-}
+
 
 // ── AUDIO ─────────────────────────────────────────────────────────────────────
 // playlist is array of {type:'point'|'transit', id, audio, title, addr}
-let audio=null,playlist=[],playIdx=0,isPlaying=false,isPlaylistMode=false;
+let audio=null,playlist=[],playIdx=0,isPlaying=false,isPlaylistMode=false,currentPlayId=null;
 
 function buildPlaylist(){
   const arr=[];
@@ -641,27 +781,50 @@ function buildPlaylist(){
 }
 
 function playItem(type,id,audioFile,title,addr){
-  if(audio){audio.pause();audio.onended=null;}
-  let file,name,sub;
-  if(type==='point'){
-    const pt=POINTS.find(p=>String(p.id)===String(id));
-    if(!pt||!pt.audio)return;
-    file=pt.audio;name=pt.name;sub=pt.addr;
-  }else{
-    file=audioFile;name=title;sub=addr||'Переход';
+  const file = type==='point'
+    ? (POINTS.find(p=>String(p.id)===String(id))||{}).audio
+    : audioFile;
+  if(!file) return;
+
+  // Same track — toggle pause/play
+  const sameId = type==='point' ? String(id) : audioFile;
+  if(audio && currentPlayId===sameId){
+    isPlaying ? audio.pause() : audio.play();
+    return;
   }
+
+  if(audio){audio.pause();audio.onended=null;}
+
+  const pt = type==='point' ? POINTS.find(p=>String(p.id)===String(id)) : null;
+  const name = pt ? pt.name : title;
+  const sub  = pt ? pt.addr : (addr||'Переход');
+
   audio=new Audio(file);
+  currentPlayId=sameId;
   isPlaying=true;
+
   document.getElementById('pb-name').textContent=name;
   document.getElementById('pb-sub').textContent=sub||'';
   document.getElementById('pb-sub').className='';
   document.getElementById('player-bar').classList.add('visible');
   setPbIcon(false);
-  updateInlineBtns(type,type==='point'?id:audioFile,true);
-  audio.play().catch(()=>{document.getElementById('pb-sub').textContent='Файл не найден';document.getElementById('pb-sub').className='warn';});
-  audio.onended=()=>{isPlaying=false;setPbIcon(true);updateInlineBtns(type,type==='point'?id:audioFile,false);if(isPlaylistMode)advancePlaylist();};
-  audio.onpause=()=>{isPlaying=false;setPbIcon(true);};
-  audio.onplay=()=>{isPlaying=true;setPbIcon(false);};
+  updateInlineBtns(type,sameId,true);
+
+  // ducking: lower bg music when voice plays
+  bgDuck(true);
+
+  audio.play().catch(()=>{
+    document.getElementById('pb-sub').textContent='Файл не найден';
+    document.getElementById('pb-sub').className='warn';
+  });
+  audio.onended=()=>{
+    isPlaying=false;currentPlayId=null;
+    setPbIcon(true);updateInlineBtns(type,sameId,false);
+    bgDuck(false);
+    if(isPlaylistMode)advancePlaylist();
+  };
+  audio.onpause=()=>{isPlaying=false;setPbIcon(true);bgDuck(false);updateInlineBtns(type,sameId,false);};
+  audio.onplay=()=>{isPlaying=true;setPbIcon(false);bgDuck(true);updateInlineBtns(type,sameId,true);};
 }
 
 function advancePlaylist(){
@@ -714,6 +877,164 @@ function updateInlineBtns(type,idOrFile,playing){
     b.classList.toggle('playing',same&&playing);
     b.innerHTML=same&&playing?`<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`:`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
   });
+}
+
+// ── BACKGROUND MUSIC ─────────────────────────────────────────────────────────
+let bgCtx=null,bgGain=null,bgPlaying=false,bgOscs=[];
+
+function getBgCtx(){
+  if(!bgCtx)bgCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return bgCtx;
+}
+
+function toggleBgMusic(){
+  if(bgPlaying){stopBgMusic();return;}
+  startBgMusic();
+}
+
+function startBgMusic(){
+  const ctx=getBgCtx();
+  if(ctx.state==='suspended')ctx.resume();
+
+  bgGain=ctx.createGain();
+  bgGain.gain.setValueAtTime(0,ctx.currentTime);
+  bgGain.gain.linearRampToValueAtTime(.5,ctx.currentTime+2);
+  bgGain.connect(ctx.destination);
+
+  // Reverb
+  const conv=ctx.createConvolver();
+  const irLen=ctx.sampleRate*2.5;
+  const ir=ctx.createBuffer(2,irLen,ctx.sampleRate);
+  for(let c=0;c<2;c++){const d=ir.getChannelData(c);for(let i=0;i<irLen;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/irLen,1.8);}
+  conv.buffer=ir;
+  const convGain=ctx.createGain();convGain.gain.value=.4;
+  conv.connect(convGain);convGain.connect(bgGain);
+
+  // Piano-like tone: sine + harmonics
+  function piano(freq,time,dur,vol){
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,time);
+    g.gain.linearRampToValueAtTime(vol,time+.012);
+    g.gain.exponentialRampToValueAtTime(vol*.3,time+.1);
+    g.gain.exponentialRampToValueAtTime(0.0001,time+dur);
+    g.connect(bgGain);g.connect(conv);
+    [1,2,3,4].forEach((h,i)=>{
+      const o=ctx.createOscillator();
+      const hg=ctx.createGain();
+      o.type='sine';
+      o.frequency.value=freq*h;
+      hg.gain.value=[1,.5,.25,.12][i];
+      o.connect(hg);hg.connect(g);
+      o.start(time);o.stop(time+dur+.1);
+    });
+  }
+
+  // Notes: A2=110 B2=123.5 C3=130.8 D3=146.8 E3=164.8 F3=174.6 G3=196 A3=220
+  // Bass: A1=55 E2=82.4 F2=87.3 G2=98 C2=65.4 D2=73.4
+  const N={
+    A2:110,B2:123.5,C3:130.8,D3:146.8,E3:164.8,F3:174.6,G3:196,A3:220,
+    A1:55,E2:82.4,F2:87.3,G2:98,C2:65.4,D2:73.4,
+    E4:329.6,C4:261.6,D4:293.7,B3:246.9,Gs3:207.7,Bb3:233.1,
+  };
+
+  const bpm=72;
+  const b=60/bpm; // one beat
+  const s=b/2;    // 8th note
+  const q=b/4;    // 16th note
+
+  // Each section: array of [freq, offsetFromSectionStart, duration, volume]
+  // Sections cycle: intro → build → variation → release → repeat
+  const sections=[
+    // 1. Am arpeggiated — ascending then descending (8 beats)
+    {len:b*8, bass:[[N.A1,0,b*2,.22],[N.A1,b*2,b*2,.18],[N.E2,b*4,b*2,.2],[N.E2,b*6,b*2,.18]], mel:[
+      [N.A2,0,s,.3],[N.C3,q,s,.28],[N.E3,s,s,.26],[N.A3,b,s,.32],
+      [N.E3,b+s,s,.24],[N.C3,b*2,s,.26],[N.A2,b*2+s,s,.28],[N.E3,b*3,s,.3],
+      [N.A3,b*3+s,s,.32],[N.E3,b*4,s,.28],[N.C3,b*4+s,s,.26],[N.A2,b*5,s,.3],
+      [N.C3,b*5+s,s,.28],[N.E3,b*6,s,.3],[N.A3,b*6+s,s,.32],[N.E3,b*7,s,.28],
+    ]},
+    // 2. F major — warm resolution (6 beats)
+    {len:b*6, bass:[[N.F2,0,b*2,.2],[N.F2,b*2,b*2,.18],[N.C2,b*4,b*2,.2]], mel:[
+      [N.F3,0,s,.28],[N.A3,q,s,.26],[N.C4,s,s,.3],[N.F3,b,s,.28],
+      [N.A3,b+q,s,.26],[N.C4,b+s,s,.3],[N.E4,b*2,b,.34],[N.D4,b*3,s,.3],
+      [N.C4,b*3+s,s,.28],[N.A3,b*4,s,.26],[N.C4,b*4+s,s,.28],[N.F3,b*5,b,.32],
+    ]},
+    // 3. C major — brighter, faster 16ths (8 beats)
+    {len:b*8, bass:[[N.C2,0,b*4,.2],[N.G2,b*4,b*4,.18]], mel:[
+      [N.C3,0,q,.26],[N.E3,q,q,.24],[N.G3,s,q,.26],[N.C4,s+q,q,.28],
+      [N.E4,b,q,.3],[N.C4,b+q,q,.28],[N.G3,b+s,q,.26],[N.E3,b+s+q,q,.24],
+      [N.C4,b*2,s,.28],[N.B3,b*2+q,q,.26],[N.A3,b*2+s,s,.28],[N.G3,b*3,s,.3],
+      [N.E3,b*3+q,q,.26],[N.G3,b*3+s,s,.28],[N.C4,b*4,b,.32],[N.E4,b*5,s,.3],
+      [N.D4,b*5+s,s,.28],[N.C4,b*6,s,.32],[N.B3,b*6+s,s,.3],[N.A3,b*7,b,.28],
+    ]},
+    // 4. E7 tension — darker (4 beats)
+    {len:b*4, bass:[[N.E2,0,b*4,.22]], mel:[
+      [N.E3,0,s,.3],[N.Gs3,q,s,.28],[N.B3,s,s,.32],[N.D4,b,s,.34],
+      [N.B3,b+s,s,.3],[N.Gs3,b*2,s,.28],[N.E3,b*2+s,s,.3],[N.B3,b*3,b,.32],
+    ]},
+    // 5. Dm — melancholy shift (6 beats)
+    {len:b*6, bass:[[N.D2,0,b*3,.2],[N.A1,b*3,b*3,.18]], mel:[
+      [N.D3,0,s,.28],[N.F3,s,s,.26],[N.A3,b,s,.3],[N.D4,b+s,s,.32],
+      [N.C4,b*2,s,.3],[N.A3,b*2+s,s,.28],[N.F3,b*3,s,.26],[N.D3,b*3+s,s,.28],
+      [N.A3,b*4,b,.3],[N.F3,b*5,s,.28],[N.E3,b*5+s,s,.26],
+    ]},
+    // 6. Am return — fuller, both hands (8 beats)
+    {len:b*8, bass:[[N.A1,0,b*2,.24],[N.E2,b*2,b,.2],[N.A1,b*3,b,.22],[N.G2,b*4,b*2,.2],[N.A1,b*6,b*2,.22]], mel:[
+      [N.A2,0,q,.28],[N.E3,q,q,.26],[N.A3,s,q,.3],[N.C4,s+q,q,.32],
+      [N.E4,b,s,.34],[N.C4,b+q,q,.3],[N.A3,b+s,q,.28],[N.E3,b+s+q,q,.26],
+      [N.A2,b*2,s,.3],[N.C3,b*2+q,q,.28],[N.E3,b*2+s,s,.3],[N.A3,b*3,s,.32],
+      [N.G3,b*3+q,q,.3],[N.E3,b*3+s,s,.28],[N.C3,b*4,s,.26],[N.A2,b*4+s,s,.28],
+      [N.E3,b*5,s,.3],[N.A3,b*5+s,s,.32],[N.C4,b*6,b,.34],[N.E4,b*7,s,.36],
+      [N.A3,b*7+s,s,.32],
+    ]},
+  ];
+
+  let t=ctx.currentTime+.5;
+  let secIdx=0;
+
+  const scheduleSection=()=>{
+    const sec=sections[secIdx%sections.length];
+    sec.bass.forEach(([f,off,dur,v])=>piano(f*.5,t+off,dur,v*.8));
+    sec.mel.forEach(([f,off,dur,v])=>piano(f,t+off,dur,v));
+    t+=sec.len;
+    secIdx++;
+  };
+
+  // Pre-schedule 3 sections
+  for(let i=0;i<3;i++)scheduleSection();
+
+  // Refill every section
+  const refill=()=>{
+    if(!bgPlaying)return;
+    const sec=sections[(secIdx-1)%sections.length];
+    const msUntilEnd=(t-ctx.currentTime)*1000-500;
+    scheduleSection();
+    setTimeout(refill,Math.max(100,msUntilEnd));
+  };
+  const firstSec=sections[0];
+  const schedId=setTimeout(refill,(firstSec.len)*1000-200);
+
+  bgOscs=[{stop:()=>clearTimeout(schedId)}];
+  bgPlaying=true;
+  document.getElementById('btn-bg-music').classList.add('playing');
+}
+
+function stopBgMusic(){
+  if(!bgPlaying)return;
+  if(bgGain){bgGain.gain.setTargetAtTime(0,getBgCtx().currentTime,.4);}
+  bgOscs.forEach(o=>{
+    try{if(typeof o.stop==='function')o.stop(getBgCtx().currentTime+.5);}catch(e){}
+  });
+  bgOscs=[];
+  bgPlaying=false;
+  document.getElementById('btn-bg-music').classList.remove('playing');
+}
+
+function bgDuck(duck){
+  if(!bgGain||!bgPlaying)return;
+  const ctx=getBgCtx();
+  const target=duck?.025:.14;
+  bgGain.gain.cancelScheduledValues(ctx.currentTime);
+  bgGain.gain.setTargetAtTime(target,ctx.currentTime,.3);
 }
 
 // ── AMBIENT GENERATOR ─────────────────────────────────────────────────────────
@@ -792,14 +1113,10 @@ function switchTab(name){
   if(name==='map'){
     setTimeout(()=>{
       initMap();
-      if(leafletMap){
-        leafletMap.invalidateSize();
-        // re-add route if layers gone
-        if(!osrmLayer&&!fallbackLayer)drawRoute();
-        // restart GPS dot
-        if(userMarker&&leafletMap)leafletMap.addLayer(userMarker);
-      }
+      if(leafletMap)leafletMap.invalidateSize();
     },80);
+  } else {
+    closeBottomsheet();
   }
   setTimeout(observeFadeUps,60);
 }
